@@ -7,6 +7,10 @@ You've successfully deployed AMP for Endpoints and it is now running on your sys
 
 This tool was developed by Matthew Franks (AMP Tier3) and Brandon Macer (Security CX).  With enough support and adoption, the long-term hope is to integrate this tool’s functionality into the AMP GUI.
 
+## Disclaimer
+
+This is not an officially supported tool and was developed as a side project, not as an official release by Cisco.  Any support received will be on an as-available timeframe and feature requests may not be fulfilled.
+
 ## Installation
  
 No installation is required.  The tool can be downloaded or cloned from GitHub.  If you'd like to make an EXE, you can do so with [PyInstaller](https://www.pyinstaller.org/):
