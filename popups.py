@@ -19,6 +19,8 @@ def analysis(data):
             size=(200, 12), key="_top_extensions")],
         [sg.Multiline("Top 10 Folders\n"+data.get_top_folders(10), \
             size=(200, 12), key="_top_folders")],
+        [sg.Multiline("Top 10 Exclusions Hit\n"+data.get_top_exclusions(10), \
+            size=(200, 12), key="_top_exclusions")],
         [
             sg.FileSaveAs("Save As", button_color=('black', '#F0F0F0'), \
             file_types=(("Log File", "*.log"),)),
@@ -36,12 +38,14 @@ def analysis(data):
         window.Element("_top_paths").Update("Top 10 Paths\n"+data.get_top_paths(10))
         window.Element("_top_extensions").Update("Top 10 Extensions\n"+data.get_top_extensions(10))
         window.Element("_top_folders").Update("Top 10 Folders\n"+data.get_top_folders(10))
+        window.Element("_top_exclusions").Update("Top 10 Exclusions Hit\n"+data.get_top_exclusions(10))
         window.Refresh()
         if values.get("Save As") != to_save:
             to_save = "Top 10 Processes\n{}\n\n".format(data.get_top_processes(10))
             to_save += "Top 10 Paths\n{}\n\n".format(data.get_top_paths(10))
             to_save += "Top 10 Extensions\n{}\n\n".format(data.get_top_extensions(10))
             to_save += "Top 10 Folders\n{}".format(data.get_top_folders(10))
+            to_save += "Top 10 Exclusions Hit\n{}".format(data.get_top_exclusions(10))
             with open(values.get("Save As"), "w") as f:
                 f.write(to_save)
 
@@ -475,6 +479,8 @@ def manual_sfc(data):
             key="_top_extensions"),
          sg.Multiline("Top 10 Folders\n"+data.get_top_folders(10), size=(100, 12), \
             key="_top_folders")],
+        [sg.Multiline("Top 10 Exclusions Hit\n"+data.get_top_exclusions(10), size=(100, 12), \
+            key="_top_exclusions")],
         [
             sg.FileSaveAs("Save As", button_color=('black', '#F0F0F0'), \
                 file_types=(("Log File", "*.log"),)),
@@ -517,6 +523,7 @@ def manual_sfc(data):
             window.FindElement('_top_extensions').Update("Top 10 Extensions\n"+ \
                 data.get_top_extensions(10))
             window.FindElement('_top_folders').Update("Top 10 Folders\n"+data.get_top_folders(10))
+            window.FindElement('_top_exclusions').Update("Top 10 Exclusions Hit\n"+data.get_top_exclusions(10))
         elif event == "Reset SFC File":
             data.sfc_path = "{}/{}/sfc.exe.log".format(data.root_path, data.version)
             window.Element("_path_display").Update("Current SFC Log: {}".format(data.sfc_path))
