@@ -67,6 +67,7 @@ class Data:
         self.region = 'NAM'
         self.diag_failed = False
         self.ip_list = []
+        self.excluded_list = []
         if apiCreds:
             logging.debug("Found apiCreds")
             self.client_id = apiCreds.client_id
@@ -281,6 +282,10 @@ class Data:
             elif "ExclusionCheck: responding: is excluded" in line:
                 self.excluded_count += 1
                 logging.debug("found is excluded: %s", self.excluded_count)
+            elif "ExclusionCheck:" in line:
+                reg = re.findall(r'ExclusionCheck: \\\\\?\\.* is excluded', line)
+                if reg:
+                    self.excluded_list.append(line.split(" ")[8])
             elif "Cache::Get: age" in line:
                 self.cache_hit_count += 1
                 logging.debug("found Cache::Get: age %s", self.cache_hit_count)
@@ -298,6 +303,17 @@ class Data:
 
     def __len__(self):
         return len(self.data)
+
+    def get_top_exclusions(self, n_count=None):
+        '''
+        Get count of top exclusions hit.
+        '''
+        logging.debug("Starting get_top_exclusions")
+        cnt = Counter()
+        for i in self.excluded_list:
+            cnt[i] += 1
+        c_count = Counter(cnt.most_common(n_count))
+        return "\n".join(["{:<5} | {}".format(i[1], i[0]) for i in c_count])
 
     def get_processes(self):
         '''
