@@ -40,7 +40,12 @@ class Data:
         self.every_folder = []
         self.root_path = "C:/Program Files/Cisco/AMP"
         self.version = self.get_version()
-        self.sfc_path = "{}/{}/sfc.exe.log".format(self.root_path, self.version)
+        self.build = self.get_build()
+        self.path_includes_build = self.does_path_include_build()
+        if self.path_includes_build:
+            self.sfc_path = "{}/{}.{}/sfc.exe.log".format(self.root_path, self.version, self.build)
+        else:
+            self.sfc_path = "{}/{}/sfc.exe.log".format(self.root_path, self.version)
         self.regex_1 = r"\w\w\w \d\d \d\d:\d\d:\d\d.*\\\\\?\\.*\\\\\?\\.*\\\\\?\\.*"
         self.regex_2 = r"(\w\w\w \d\d \d\d:\d\d:\d\d).*\\\\\?\\(.*)\(\\\\\?\\.*\\\\\?\\(.*)"
         self.data = []
@@ -164,6 +169,34 @@ class Data:
                 logging.warning("Error: psutil.NoSuchProcess")
         final_cpu = cpu / processors
         return float(final_cpu)
+    
+    def get_build(self):
+        '''
+        Determine build version of the AMP connector installed
+        '''
+        logging.debug("Starting get_build")
+        path = r"C:/Program Files/Cisco/AMP"
+        directory = os.listdir(path)
+        max_version = [0, 0, 0]
+        reg_version = r'\d{1,2}\.\d{1,2}\.\d{1,2}'
+        for entry in directory:
+            logging.debug("entry: %s", entry)
+            if f"{self.version}." in entry:
+                logging.debug("build match")
+                build = entry.split(".")[-1]
+                logging.debug("build: " + build)
+                return build
+        return ""
+
+    def does_path_include_build(self):
+        print("running does_path_include_build")
+        sp = self.version.split(".")
+        val = int(sp[-1]) + 100*int(sp[-2]) + 10000*int(sp[-3])
+        if val >= 70400:
+            logging.debug("newer than 7.4, path includes build")
+            return True
+        logging.debug("older than 7.4, path does not include build")
+        return False
 
     def get_version(self):
         '''

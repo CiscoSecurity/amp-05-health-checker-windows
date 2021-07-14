@@ -6,6 +6,7 @@ import logging
 import time
 import PySimpleGUI as sg
 import popups
+import psutil
 from data import Data
 
 
@@ -17,7 +18,7 @@ def main():
     logging.basicConfig(
         format='%(asctime)s %(name)-12s %(levelname)-8s %(filename)s %(funcName)s %(message)s',
         datefmt='%m-%d %H:%M:%S',
-        level=logging.INFO,
+        level=logging.DEBUG,
         filename="amp_health_checker_log.log"
         )
     logging.warning("AMP Health Checker logging level is %s", \
