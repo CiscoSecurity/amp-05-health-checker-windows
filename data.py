@@ -42,10 +42,13 @@ class Data:
         self.version = self.get_version()
         self.build = self.get_build()
         self.path_includes_build = self.does_path_include_build()
+        self.path_prelude = ""
         if self.path_includes_build:
             self.sfc_path = "{}/{}.{}/sfc.exe.log".format(self.root_path, self.version, self.build)
+            self.path_prelude = "{}/{}.{}".format(self.root_path, self.version, self.build)
         else:
             self.sfc_path = "{}/{}/sfc.exe.log".format(self.root_path, self.version)
+            self.path_prelude = "{}/{}".format(self.root_path, self.version)
         self.regex_1 = r"\w\w\w \d\d \d\d:\d\d:\d\d.*\\\\\?\\.*\\\\\?\\.*\\\\\?\\.*"
         self.regex_2 = r"(\w\w\w \d\d \d\d:\d\d:\d\d).*\\\\\?\\(.*)\(\\\\\?\\.*\\\\\?\\(.*)"
         self.data = []
@@ -771,7 +774,7 @@ class Data:
         elif self.policy_dict['log_level'] == '0':
             logging.info('Enabling debug logging.')
             try:
-                subprocess.Popen(["{}/{}/sfc.exe".format(self.root_path, self.version), '-l', 'start'])
+                subprocess.Popen(["{}/sfc.exe".format(self.path_prelude), '-l', 'start'])
             except OSError:
                 sg.Popup("Changing log level requires running AMP Health Checker as Admin.  \
                     Please try again as Admin.", title="Admin required")
@@ -787,7 +790,7 @@ class Data:
         Disable AMP debug logging if set temporarily.
         '''
         logging.info('Disabling debug logging.')
-        subprocess.Popen(["{}/{}/sfc.exe".format(self.root_path, self.version), '-l', 'stop'])
+        subprocess.Popen(["{}/sfc.exe".format(self.path_prelude), '-l', 'stop'])
         logging.info('Debug logging disabled.')
         self.enabled_debug = False
 
@@ -836,7 +839,7 @@ class Data:
             self.diag_failed = True
 
         try:
-            subprocess.Popen("{}/{}/ipsupporttool.exe".format(self.root_path, self.version))
+            subprocess.Popen("{}/ipsupporttool.exe".format(self.path_prelude))
         except OSError as e:
             logging.error(e)
             self.diag_failed = True
