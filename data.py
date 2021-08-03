@@ -790,7 +790,7 @@ class Data:
         Disable AMP debug logging if set temporarily.
         '''
         logging.info('Disabling debug logging.')
-        subprocess.Popen(["{}/sfc.exe".format(self.root_path, self.version, self.build), '-l', 'stop'])
+        subprocess.Popen(["{}/sfc.exe".format(self.path_prelude), '-l', 'stop'])
         logging.info('Debug logging disabled.')
         self.enabled_debug = False
 
