@@ -20,7 +20,7 @@ Current executable has been included in the files above for ease of use.
 
 ## Usage
  
-To start the tool, ensure that you have an instance of AMP running and run the main_page.py script. If you have an executable from PyInstaller, right click the executable and Run as Administrator.  Basic functionality works with just a double click of the executable but you will not be able to Generate a diagnostics file or change log level unless you Run as Administrator.  You'll be presented with the GUI interface.
+To start the tool, ensure that you have an instance of AMP running and run the main_page.py script. If you have an executable from PyInstaller, right click the executable and Run as Administrator.  You'll be presented with the GUI interface.
 
  
 ## Main Page GUI
