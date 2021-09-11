@@ -270,7 +270,7 @@ def connectivity(data):
     size = (30, 1)
     layout = []
     for url in data.connectivity_urls:
-        layout.append([sg.Text(url, size=size, background_color="Yellow", key=url)])
+        layout.append([sg.Text(url, size=size, background_color="Yellow", text_color="Black", key=url)])
     layout.append([sg.Text("Status: RUNNING", key="_conn_test_running", size=(30, 1))]),
     layout.append([sg.Button('Test Again', button_color=('black', '#F0F0F0'), key="_test_again", \
         disabled=True), sg.Button('Cancel', button_color=('black', '#F0F0F0'))])
@@ -302,7 +302,7 @@ def check_latest_tetra(data, window):
     '''
     Look up latest TETRA data.
     '''
-    window.FindElement('_tetra_version').Update(background_color="Yellow")
+    window.FindElement('_tetra_version').Update(background_color="Yellow", text_color="Black")
     window.Element("_latest_tetra_version").Update("Checking...")
     window.FindElement('_tetra_version_button').Update(disabled=True)
     window.Refresh()
@@ -317,7 +317,7 @@ def check_latest_policy(data, window):
     '''
     Look up latest policy data.
     '''
-    window.FindElement('_policy_version').Update(background_color="Yellow")
+    window.FindElement('_policy_version').Update(background_color="Yellow", text_color="Black")
     window.FindElement('_latest_policy_version').Update("Checking...")
     window.FindElement('_policy_version_button').Update(disabled=True)
     window.Refresh()
