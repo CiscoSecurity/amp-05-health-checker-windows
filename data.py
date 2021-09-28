@@ -180,19 +180,23 @@ class Data:
         logging.debug("Starting get_build")
         path = r"C:/Program Files/Cisco/AMP"
         directory = os.listdir(path)
-        max_version = [0, 0, 0]
-        reg_version = r'\d{1,2}\.\d{1,2}\.\d{1,2}'
-        for entry in directory:
-            logging.debug("entry: %s", entry)
+        reg_version = r'\d{1,2}\.\d{1,2}\.\d{1,2}.\d{1,5}'
+        reg = re.compile(reg_version)
+        build_list = list(filter(reg.match, directory))
+        if len(build_list) > 0:
+            logging.debug(f"Found matching directories {build_list}")
+        else:
+            return ""
+        highest_build = 0
+        for entry in build_list:
             if f"{self.version}." in entry:
-                logging.debug("build match")
-                build = entry.split(".")[-1]
-                logging.debug("build: " + build)
-                return build
-        return ""
+                if int(entry.split('.')[-1]) > highest_build:
+                    highest_build = int(entry.split('.')[-1])
+                    logging.debug(f"New highest build: {highest_build}")
+        return highest_build
 
     def does_path_include_build(self):
-        print("running does_path_include_build")
+        logging.debug("running does_path_include_build")
         sp = self.version.split(".")
         val = int(sp[-1]) + 100*int(sp[-2]) + 10000*int(sp[-3])
         if val >= 70400:
@@ -774,10 +778,10 @@ class Data:
         elif self.policy_dict['log_level'] == '0':
             logging.info('Enabling debug logging.')
             try:
+                logging.debug(f"Attempting to run {self.path_prelude}/sfc.exe")
                 subprocess.Popen(["{}/sfc.exe".format(self.path_prelude), '-l', 'start'])
             except OSError:
-                sg.Popup("Changing log level requires running AMP Health Checker as Admin.  \
-                    Please try again as Admin.", title="Admin required")
+                sg.Popup("Changing log level requires running AMP Health Checker as Admin. Please try again as Admin.", title="Admin required")
                 sys.exit()
             logging.info('Debug logging enabled.')
             self.enabled_debug = True
