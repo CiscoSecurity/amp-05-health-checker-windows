@@ -32,7 +32,7 @@ def main():
         [sg.Text("AMP Version: ", tooltip="The current AMP version running on the system."), \
             sg.Text("Loading...", key='_version')],
         [sg.Text("CPU Usage: ", tooltip="The current amount of CPU utilized by AMP executables."), \
-            sg.Text("0", key='_cpu', size=(5, 1))],
+            sg.Text("0", key='_cpu', size=(8, 1))],
         [sg.Text("AMP Uptime: ", size=(10, 1)), sg.Text("", size=(27, 1), key="_uptime", \
             tooltip="Time since AMP was last stopped")],
         [sg.Text("Isolation: ", tooltip="Shows if the connector is Isolated or Not Isolated. \
@@ -59,9 +59,7 @@ def main():
             Credentials are valid. Can read from text file named "apiCreds.txt" in the local \
                 directory.\nMust be in this format:\nclient_id="abcdabcdabcdabcdabcd"\napi_key= \
                     "abcd1234-abcd-1234-abcd-abcd1234abcd"'), sg.Text("", size=(6, 1), \
-                        key="_api_cred_valid"),
-         sg.Button("Get API Credentials", button_color=('black', '#F0F0F0'), size=button_size, \
-            tooltip="Allows user to manually input API Credentials.")],
+                        key="_api_cred_valid")],
         [sg.Text('_'*50)],
         [sg.Button("Live Debugging", button_color=('black', '#F0F0F0'), size=button_size, \
             tooltip="Live analysis used for determining potential exclusions."), \
@@ -201,8 +199,6 @@ def main():
         elif event == "Refresh":
             d_instance.reset_data()
             window.Refresh()
-        elif event == "Get API Credentials":
-            popups.get_api_credentials(d_instance)
         elif event == "Manual SFC Analysis":
             popups.manual_sfc(d_instance)
         elif event == "Generate Diagnostic":

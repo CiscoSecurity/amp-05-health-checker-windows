@@ -2,7 +2,6 @@
 This is the APJC Address list.  It will need updated over time.
 '''
 NAMADDRESSLIST = [
-    "cloud-ec.amp.cisco.com",
     "cloud-ec-asn.amp.cisco.com",
     "cloud-ec-est.amp.cisco.com",
     "enrolment.amp.cisco.com",

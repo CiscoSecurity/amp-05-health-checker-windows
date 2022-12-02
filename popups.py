@@ -226,43 +226,6 @@ def lpap_data_reset(data):
 
     return data
 
-def get_api_credentials(data, api_key='', client_id=''):
-    """
-    This is the section where API credentials are pulled and verified.
-    """
-    layout = [
-        [sg.Text('Insert Client ID'), sg.InputText('', size=(20, 1))],
-        [sg.Text('Insert API Key'), sg.InputText('', password_char="*", size=(20, 1))],
-        [sg.Button('Save', button_color=('black', '#F0F0F0')), sg.Button('Cancel', \
-            button_color=('black', '#F0F0F0'))]
-    ]
-    window = sg.Window("API Credentials", layout, location=(1, 1))
-    while True:
-        event, values = window.Read()
-        logging.debug('Event - %s : Values - %s', event, values)
-        if event == "Save":
-            data.client_id = values[0]
-            data.api_key = values[1]
-            data.auth = (data.client_id, data.api_key)
-            data.verify_api_creds()
-            if data.api_cred_valid == False:
-                layout2 = [
-                    [sg.Text('Invalid Credentials')],
-                    [sg.Button('OK', button_color=('black', '#F0F0F0'))]
-                ]
-                window2 = sg.Window('Invalid API Credentials', layout2, location=(1, 1))
-                while True:
-                    event2, values2 = window2.Read()
-                    logging.debug('Event - %s : Values - %s', event2, values2)
-                    if event2 in (None, 'OK'):
-                        break
-                window2.close()
-            else:
-                break
-        elif event in (None, "Cancel"):
-            break
-    window.close()
-
 def connectivity(data):
     """
     This is the section where connections to the required servers are verified.
@@ -359,25 +322,27 @@ def engines_enabled(data):
     """
     layout = [
         [sg.Text("Engine status")],
-        [sg.Checkbox('', default=True, disabled=True), sg.Text('SHA')],
+        [sg.Checkbox('', default=True, disabled=False), sg.Text('SHA')],
         [sg.Checkbox('', default=True if (data.policy_dict['tetra'] == '1') else False, \
-            disabled=True), sg.Text('TETRA')],
+            disabled=False), sg.Text('TETRA')],
         [sg.Checkbox('', default=True if (data.policy_dict['exprev_enable'] == '1') else False, \
-            disabled=True), sg.Text('Exploit Prevention')],
+            disabled=False), sg.Text('Exploit Prevention')],
         [sg.Checkbox('', default=True if (data.policy_dict['DFC'] == '1') else False, \
-            disabled=True), sg.Text('Network Monitoring')],
+            disabled=False), sg.Text('Network Monitoring')],
         [sg.Checkbox('', default=True if (data.policy_dict['spp'] == '1') else False, \
-            disabled=True), sg.Text('System Process Protection')],
+            disabled=False), sg.Text('System Process Protection')],
         [sg.Checkbox('', default=True if (data.policy_dict['ethos'] == '1') else False, \
-            disabled=True), sg.Text('ETHOS')],
+            disabled=False), sg.Text('ETHOS')],
         [sg.Checkbox('', default=True if (data.policy_dict['spero'] == '1') else False, \
-            disabled=True), sg.Text('SPERO')],
+            disabled=False), sg.Text('SPERO')],
         [sg.Checkbox('', default=True if (data.policy_dict['urlscanner'] == '1') else False, \
-            disabled=True), sg.Text('URL Scanner')],
+            disabled=False), sg.Text('URL Scanner')],
         [sg.Checkbox('', default=True if (data.policy_dict['orbital'] == '1') else False, \
-            disabled=True), sg.Text('Orbital')],
+            disabled=False), sg.Text('Orbital')],
         [sg.Checkbox('', default=True if (data.policy_dict['endpoint_isolation'] == '1') \
-            else False, disabled=True), sg.Text('Endpoint Isolation')],
+            else False, disabled=False), sg.Text('Endpoint Isolation')],
+        [sg.Checkbox('', default=True if (data.policy_dict['device_control'] == '1') else False, \
+            disabled=False), sg.Text('Device Control')],
         [sg.Button('OK', button_color=('black', '#F0F0F0'))]
     ]
 
