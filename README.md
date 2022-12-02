@@ -1,11 +1,15 @@
 # AMP Health Checker for Windows
  
+## AUTHENTICAION UPDATE December 2022
+Due to changes in the accessibility of the policy.xml file in the 8.1.3 release, authentication for the Healt Checker tool had to be updated to include SecureX API authenticaiton.  The SecureX API allows access to the policy.xml file which is required for proper operation of the tool.  See the API Credentials section below for more information.
+
+The Device Control engine was also added in the Engines Check section.
 
 ## Introduction
  
 You've successfully deployed AMP for Endpoints and it is now running on your system.  Great!  But, what is it actually doing?  Most of the time it doesn't look like it is doing anything, but AMP is actually performing file checks constantly on the endpoint.  The goal of this tool is to provide additional insight into AMP operations and allow customers to perform troubleshooting on their own.  This should empower customers to self-resolve performance issues that would otherwise involve TAC engagement, and also provide visibility into AMP’s various activities.
 
-This tool was developed by Matthew Franks (AMP Tier3) and Brandon Macer (Security CX).  With enough support and adoption, the long-term hope is to integrate this tool’s functionality into the AMP GUI.
+This tool was developed by Matthew Franks (Advanced Threat Escalations) and Brandon Macer (Advanced Threat Escalations).  With enough support and adoption, the long-term hope is to integrate this tool’s functionality into the Secure Client GUI.
 
 ## Disclaimer
 
@@ -49,9 +53,9 @@ If isolated, the Isolation Code to unlock the connector will be displayed.
 
 ![](/images/Isolation_Code.png)
 
-NOTE: Valid API Credentials are required for this functionality to work.
+NOTE: Valid Secure Endpoint API Credentials are required for this functionality to work.
 
-For additional information on Endpoint Isolation, please refer to the [AMP User Guide](https://docs.amp.cisco.com/en/A4E/AMP%20for%20Endpoints%20User%20Guide.pdf). 
+For additional information on Endpoint Isolation, please refer to the [Secure Endpoint User Guide](https://console.amp.cisco.com/help/en/wwhelp/wwhimpl/js/html/wwhelp.htm). 
 
 ### TETRA Version
  
@@ -65,21 +69,31 @@ NOTE: This functionality does not require API Credentials.
  
 This displays the current Policy Serial number in place on the local connector.  Click the Check Policy Version button to check that against the version available in the cloud.  If you have the latest version, it will be highlighted Green.  If your version is not the latest, it will be highlighted Red.  Also, the latest version available will be displayed on the right.
 
+NOTE: Requires Secure Endpoint API Credentials.
+
 ### API Credentials
  
-This display will show if you have provided valid API Credentials.  It will show either Valid or Invalid.  There are two ways to provide credentials.
+This display will show if you have provided valid Secure Endpoint API Credentials.  It will show either Valid or Invalid.  Much of the tool functionality will require API credentials.  These are provided in a .env file in the same directory as the python script or program executable, depending on how you're executing the program.
 
-1. Click the Get API Credentials button.  This will show a popup and allow you to supply the Client ID and API Key for authentication.  
+The .env file must have the following entries to pull the policy.xml which is no longer accessible locally as of the 8.1.3 release.
 
-![](images/API_Credentials.png)
-
-2. If you place a file in the same directory as the main_page.py script or AMP Health Checker executable, the program can read the credentials from there to avoid manually supplying them each time.  The file must be called apiCreds.txt and be formatted like this:
-
-> client_id="abcdabcdabcdabcdabcd"
-
-> api_key="abcd1234-abcd-1234-abcd-1234abcd1234"
-
+> CLIENT_ID = "01234567890abcdef012"
+> API_KEY = "12345678-abcd-abcd-abcd-1234567890ab"
+> SX_CLIENT_ID = "client-12345678-abcd-abcd-abcd-01234567890a"
+> SX_API_KEY = "Abcdef01234567-Abcdef01234567890abcdef01234567890abcde"
+> ORG_NAME = "Your Org Name"
+> REGION = "NAM"
  
+The CLIENT_ID and API_KEY will be generated in the [Secure Endpoints console](https://console.amp.cisco.com/api_credentials).
+
+The SX_CLIENT_ID and SX_API_KEY will be generated in the [SecureX console](https://securex.us.security.cisco.com/settings/apiClients).
+
+The ORG_NAME is your SecureX Organization name.  Keep in mind you may have more than one organization so choose the appropriate one that matches your Secure Endpoint deployment. The SecureX Organization name is displayed in the top right corner of the SecureX console.
+
+![](images/Org_Name.png)
+
+The REGION is either NAM, EU, or APJC dpending on the region your deployment is located.
+
 ### Live Debugging
  
 The Live Debugging button will bring you to a new popup.  Within this popup, you can conduct performance troubleshooting.  The statistics provided should give you an indication of the engine or action that is causing high system resource utilization.

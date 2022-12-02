@@ -20,13 +20,14 @@ import shutil
 import psutil
 import requests
 import PySimpleGUI as sg
+from dotenv import load_dotenv
 from nam_urls import NAMADDRESSLIST
 from eu_urls import EUADDRESSLIST
 from apjc_urls import APJCADDRESSLIST
-try:
-    import apiCreds # pylint: disable=import-error
-except ModuleNotFoundError:
-    apiCreds = False
+# try:
+#     import apiCreds # pylint: disable=import-error
+# except ModuleNotFoundError:
+apiCreds = False
 
 class Data:
     '''
@@ -65,31 +66,37 @@ class Data:
         self.inner_file_count = 0
         self.tetra_latest = 0
         self.internal_health_check = 0
-        self.parse_xml()
-        self.debug_check()
-        self.local_uuid = self.dig_thru_xml("agent", "uuid", \
-            root=self.get_root("C:/Program Files/Cisco/AMP/local.xml"), tag="")
+        self.region = 'NAM'
+        self.business_uuid = self.dig_thru_xml("janus", "business", "uuid", root=self.get_root("C:/Program Files/Cisco/AMP/local.xml"), tag="")
+        self.local_uuid = self.dig_thru_xml("agent", "uuid", root=self.get_root("C:/Program Files/Cisco/AMP/local.xml"), tag="")
         self.api_cred_valid = False
         self.auth = False
-        self.policy_color = 'Yellow'
-        self.region = 'NAM'
-        self.diag_failed = False
-        self.ip_list = []
-        self.excluded_list = []
         if apiCreds:
             logging.debug("Found apiCreds")
             self.client_id = apiCreds.client_id
             self.api_key = apiCreds.api_key
             self.auth = (self.client_id, self.api_key)
             self.verify_api_creds()
-        elif os.path.exists("apiCreds.txt"):
-            logging.debug("Found apiCreds.txt")
-            with open("apiCreds.txt", "r") as file_1:
-                lines = file_1.readlines()
-                self.client_id = lines[0].split('"')[1]
-                self.api_key = lines[1].split('"')[1]
-                self.auth = (self.client_id, self.api_key)
-                self.verify_api_creds()
+        else:
+            load_dotenv()
+            logging.debug("Loading credentials from .env")
+            self.client_id = os.getenv('CLIENT_ID')
+            self.api_key = os.getenv('API_KEY')
+            self.region = os.getenv('REGION')
+            self.sx_client_id = os.getenv('SX_CLIENT_ID')
+            self.sx_api_key = os.getenv('SX_API_KEY')
+            self.org_name = os.getenv('ORG_NAME')
+            self.auth = (self.client_id, self.api_key)
+            self.verify_api_creds()
+        self.parse_xml()
+        self.debug_check()
+        self.local_uuid = self.dig_thru_xml("agent", "uuid", \
+            root=self.get_root("C:/Program Files/Cisco/AMP/local.xml"), tag="")
+        self.policy_color = 'Yellow'
+        self.diag_failed = False
+        self.ip_list = []
+        self.excluded_list = []
+        
         if self.auth:
             logging.debug("Found self.auth")
             self.policy_serial_compare(self.policy_dict['policy_uuid'], \
@@ -446,6 +453,7 @@ class Data:
         Determine the root path of the XML.
         '''
         logging.debug("Starting get_root")
+        
         with open(path) as f:
             tree = ET.parse(f)
             root = tree.getroot()
@@ -538,12 +546,15 @@ class Data:
             "proxy_password": ("Object", "config", "proxy", "password"),
             "proxy_port": ("Object", "config", "proxy", "port"),
             "proxy_type": ("Object", "config", "proxy", "type"),
-            "proxy_username": ("Object", "config", "proxy", "username")
+            "proxy_username": ("Object", "config", "proxy", "username"),
+            "device_control": ("Object", "config", "agent", "dc", "enabled")
         }
 
         policy_dict = {}
-
-        root = self.get_root(path)
+        try:
+            root = self.get_root(path)
+        except OSError as e:
+            root = self.pull_policy_from_sx()
 
         policy_dict["path_exclusions"] = self.dig_thru_xml("Object", "config", "exclusions", \
             "info", "item", root=root, is_list=True)
@@ -627,7 +638,10 @@ class Data:
         try:
             r = requests.get(url, auth=self.auth)
             j = json.loads(r.content)
+            logging.debug(f"SELF.POLICY_SERIAL_RESPONSE: {j}")
+            
             self.policy_serial = j['data'].get('serial_number')
+            logging.debug(f"SELF.POLICY_SERIAL: {self.policy_serial}")
             if self.policy_serial:
                 logging.debug("self.policy_serial: %s", self.policy_serial)
                 logging.debug("policy_xml_serial: %s", policy_xml_serial)
@@ -683,7 +697,7 @@ class Data:
         '''
         logging.info("Running update_api_calls")
         self.policy_dict['policy_sn'] = self.dig_thru_xml("Object", "config", "janus", "policy", \
-            "serial_number", root=self.get_root("C:/Program Files/Cisco/AMP/policy.xml"))
+            "serial_number", root=self.policy_xml_root)
         self.policy_serial_compare(self.policy_dict['policy_uuid'], self.policy_dict['policy_sn'])
         try:
             self.tetra_version = self.dig_thru_xml("agent", "engine", "tetra", "defversions", \
@@ -847,6 +861,83 @@ class Data:
         except OSError as e:
             logging.error(e)
             self.diag_failed = True
+
+    def pull_policy_from_sx(self):
+        '''
+        Authenticate to SecureX and pull the policy.xml file, then return the root xml for parsing
+        '''
+        root = ''
+        # Pull the policy uuid
+        url = "https://api.amp.cisco.com/v1/computers/{}".format(self.local_uuid)
+        try:
+            r = requests.get(url, auth=self.auth)
+            j = json.loads(r.content)
+            logging.debug(j)
+            self.policy_uuid = j['data']['policy']['guid']
+        except requests.exceptions.ConnectionError:
+            logging.warning("requests.exceptions.ConnectionError")
+            exit("Unable to pull the policy guid due to requests.exceptions.ConnectionError")
+        except KeyError:
+            logging.warning("KeyError")
+            exit("Unable to pull the policy guid due to KeyError")
+        se_access_token, base_secure_endpoint_url = self.get_se_access_token()
+
+        org_id_url = f"{base_secure_endpoint_url}/organizations?size=100"
+        headers = {'Authorization': f'Bearer {se_access_token}'}
+        org_response = requests.get(org_id_url, headers=headers)
+        for org in org_response.json()['data']:
+            if org['name'] == self.org_name:
+                self.org_id = org['organizationIdentifier']
+
+        policy_xml_url = f"{base_secure_endpoint_url}/organizations/{self.org_id}/policies/{self.policy_uuid}/xml"
+        policy_response = requests.get(policy_xml_url, headers=headers)
+        if policy_response.status_code == 404:
+            logging.debug("Policy call retured 404, check your SecureX Org ID to ensure it matches the org containing this policy.")
+        self.policy_xml = policy_response.text
+        tree = ET.ElementTree(ET.fromstring(self.policy_xml))
+        self.policy_xml_root = tree.getroot()
+        
+        return self.policy_xml_root
+
+    def get_se_access_token(self):
+        """
+        Authenticate with SecureX and Secure Endpoints to get a token.  
+        :return Secure Endpoints access token
+        """
+        if self.region == "NAM":
+            base_securex_url = "https://visibility.amp.cisco.com"
+            base_secure_endpoint_url = "https://api.amp.cisco.com/v3"
+        elif self.region == "EU":
+            base_securex_url = "https://visibility.eu.amp.cisco.com"
+            base_secure_endpoint_url = "https://api.eu.amp.cisco.com/v3"
+        elif self.region == "APJC":
+            base_securex_url = "https://visibility.apjc.amp.cisco.com"
+            base_secure_endpoint_url = "https://api.apjc.amp.cisco.com/v3"
+        
+        auth = (self.sx_client_id, self.sx_api_key)
+        securex_url = f"{base_securex_url}/iroh/oauth2/token"
+        data = {"grant_type": "client_credentials"}
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Accept': 'application/json',
+        }
+        
+        # Authenticate with SecureX and get an access_token
+        sx_response = requests.post(securex_url, headers=headers, data=data, auth=auth)
+        if sx_response.status_code == 400:
+            logging.warning("Please check your apiCreds.txt file for proper credentials and try again.")
+            exit("Please check your apiCreds.txt file for proper credentials and try again.")
+        sx_access_token = (sx_response.json().get("access_token"))
+
+        # Get Secure Endpoints access_token
+        secure_endpoint_url = f"{base_secure_endpoint_url}/access_tokens"
+        headers = {
+            'Authorization': f'Bearer {sx_access_token}'
+        }
+        se_response = requests.post(secure_endpoint_url, headers=headers)
+        se_access_token = se_response.json().get("access_token")
+        logging.debug(f"SE ACCESS TOKEN: {se_access_token}")
+        return se_access_token, base_secure_endpoint_url
 
 def main():
     '''
