@@ -4,6 +4,7 @@ This section is for all the popup GUIs off the main page.
 import logging
 import PySimpleGUI as sg
 from data import Data
+from bad_exclusions_list import bad_exclusions_list
 
 def analysis(data):
     '''
@@ -12,15 +13,15 @@ def analysis(data):
     data.update()
     layout = [
         [sg.Multiline("Top 10 Processes\n"+data.get_top_processes(10), \
-            size=(200, 12), key="_top_processes")],
+            size=(200, 10), key="_top_processes")],
         [sg.Multiline("Top 10 Paths\n"+data.get_top_paths(10), \
-            size=(200, 12), key="_top_paths")],
+            size=(200, 10), key="_top_paths")],
         [sg.Multiline("Top 10 Extensions\n"+data.get_top_extensions(10), \
-            size=(200, 12), key="_top_extensions")],
+            size=(200, 10), key="_top_extensions")],
         [sg.Multiline("Top 10 Folders\n"+data.get_top_folders(10), \
-            size=(200, 12), key="_top_folders")],
+            size=(200, 10), key="_top_folders")],
         [sg.Multiline("Top 10 Exclusions Hit\n"+data.get_top_exclusions(10), \
-            size=(200, 12), key="_top_exclusions")],
+            size=(200, 10), key="_top_exclusions")],
         [
             sg.FileSaveAs("Save As", button_color=('black', '#F0F0F0'), \
             file_types=(("Log File", "*.log"),)),
@@ -180,15 +181,15 @@ def lpap(data):
             data = lpap_data_reset(data)
             window.Element("_data").Update("")
             window.Element("_cpu").Update("CPU: {}".format(data.current_cpu))
-            window.FindElement('_quarantine_count').Update(data.quarantine_count)
-            window.FindElement('_spero_count').Update(data.spero_count)
-            window.FindElement('_ethos_count').Update(data.ethos_count)
-            window.FindElement('_cloud_lookup_count').Update(data.cloud_lookup_count)
-            window.FindElement('_tetra_scan_count').Update(data.tetra_scan_count)
-            window.FindElement('_excluded_count').Update(data.excluded_count)
-            window.FindElement('_cache_hit_count').Update(data.cache_hit_count)
-            window.FindElement('_malicious_hit_count').Update(data.malicious_hit_count)
-            window.FindElement('_inner_file_scan').Update(data.inner_file_count)
+            window.find_element('_quarantine_count').Update(data.quarantine_count)
+            window.find_element('_spero_count').Update(data.spero_count)
+            window.find_element('_ethos_count').Update(data.ethos_count)
+            window.find_element('_cloud_lookup_count').Update(data.cloud_lookup_count)
+            window.find_element('_tetra_scan_count').Update(data.tetra_scan_count)
+            window.find_element('_excluded_count').Update(data.excluded_count)
+            window.find_element('_cache_hit_count').Update(data.cache_hit_count)
+            window.find_element('_malicious_hit_count').Update(data.malicious_hit_count)
+            window.find_element('_inner_file_scan').Update(data.inner_file_count)
             window.Element("_running").Update("Status: READY")
             window.Refresh()
         if values.get("Save As") != to_save:
@@ -198,15 +199,15 @@ def lpap(data):
         if running:
             window.Element("_data").Update(data.convert_to_layout())
             window.Element("_cpu").Update("CPU: {}".format(data.current_cpu))
-            window.FindElement('_quarantine_count').Update(data.quarantine_count)
-            window.FindElement('_spero_count').Update(data.spero_count)
-            window.FindElement('_ethos_count').Update(data.ethos_count)
-            window.FindElement('_cloud_lookup_count').Update(data.cloud_lookup_count)
-            window.FindElement('_tetra_scan_count').Update(data.tetra_scan_count)
-            window.FindElement('_excluded_count').Update(data.excluded_count)
-            window.FindElement('_cache_hit_count').Update(data.cache_hit_count)
-            window.FindElement('_malicious_hit_count').Update(data.malicious_hit_count)
-            window.FindElement('_inner_file_scan').Update(data.inner_file_count)
+            window.find_element('_quarantine_count').Update(data.quarantine_count)
+            window.find_element('_spero_count').Update(data.spero_count)
+            window.find_element('_ethos_count').Update(data.ethos_count)
+            window.find_element('_cloud_lookup_count').Update(data.cloud_lookup_count)
+            window.find_element('_tetra_scan_count').Update(data.tetra_scan_count)
+            window.find_element('_excluded_count').Update(data.excluded_count)
+            window.find_element('_cache_hit_count').Update(data.cache_hit_count)
+            window.find_element('_malicious_hit_count').Update(data.malicious_hit_count)
+            window.find_element('_inner_file_scan').Update(data.inner_file_count)
 
     window.close()
 
@@ -265,14 +266,14 @@ def check_latest_tetra(data, window):
     '''
     Look up latest TETRA data.
     '''
-    window.FindElement('_tetra_version').Update(background_color="Yellow", text_color="Black")
+    window.find_element('_tetra_version').Update(background_color="Yellow", text_color="Black")
     window.Element("_latest_tetra_version").Update("Checking...")
-    window.FindElement('_tetra_version_button').Update(disabled=True)
+    window.find_element('_tetra_version_button').Update(disabled=True)
     window.Refresh()
     data.tetra_def_compare()
     window.Element("_latest_tetra_version").Update(data.tetra_latest)
-    window.FindElement('_tetra_version').Update(background_color=data.tetra_color)
-    window.FindElement('_tetra_version_button').Update(disabled=False)
+    window.find_element('_tetra_version').Update(background_color=data.tetra_color)
+    window.find_element('_tetra_version_button').Update(disabled=False)
     window.Refresh()
     return
 
@@ -280,19 +281,19 @@ def check_latest_policy(data, window):
     '''
     Look up latest policy data.
     '''
-    window.FindElement('_policy_version').Update(background_color="Yellow", text_color="Black")
-    window.FindElement('_latest_policy_version').Update("Checking...")
-    window.FindElement('_policy_version_button').Update(disabled=True)
+    window.find_element('_policy_version').Update(background_color="Yellow", text_color="Black")
+    window.find_element('_latest_policy_version').Update("Checking...")
+    window.find_element('_policy_version_button').Update(disabled=True)
     window.Refresh()
     if not data.api_cred_valid:
         logging.debug("no auth in latest policy check")
-        window.FindElement('_policy_version_button').Update(disabled=False)
+        window.find_element('_policy_version_button').Update(disabled=False)
         window.Element("_latest_policy_version").Update("Invalid API")
         return
     data.policy_serial_compare(data.policy_dict['policy_uuid'], data.policy_dict['policy_sn'])
     window.Element("_latest_policy_version").Update(data.policy_serial)
-    window.FindElement('_policy_version').Update(background_color=data.policy_color)
-    window.FindElement('_policy_version_button').Update(disabled=False)
+    window.find_element('_policy_version').Update(background_color=data.policy_color)
+    window.find_element('_policy_version_button').Update(disabled=False)
     window.Refresh()
     return
 
@@ -473,22 +474,22 @@ def manual_sfc(data):
             with open(data.sfc_path) as file:
                 data.last_log_line = file.readlines()[0]
             data.update()
-            window.FindElement('_quarantine_count').Update(data.quarantine_count)
-            window.FindElement('_spero_count').Update(data.spero_count)
-            window.FindElement('_ethos_count').Update(data.ethos_count)
-            window.FindElement('_cloud_lookup_count').Update(data.cloud_lookup_count)
-            window.FindElement('_tetra_scan_count').Update(data.tetra_scan_count)
-            window.FindElement('_excluded_count').Update(data.excluded_count)
-            window.FindElement('_cache_hit_count').Update(data.cache_hit_count)
-            window.FindElement('_malicious_hit_count').Update(data.malicious_hit_count)
-            window.FindElement('_inner_file_scan').Update(data.inner_file_count)
-            window.FindElement('_top_processes').Update("Top 10 Processes\n"+ \
+            window.find_element('_quarantine_count').Update(data.quarantine_count)
+            window.find_element('_spero_count').Update(data.spero_count)
+            window.find_element('_ethos_count').Update(data.ethos_count)
+            window.find_element('_cloud_lookup_count').Update(data.cloud_lookup_count)
+            window.find_element('_tetra_scan_count').Update(data.tetra_scan_count)
+            window.find_element('_excluded_count').Update(data.excluded_count)
+            window.find_element('_cache_hit_count').Update(data.cache_hit_count)
+            window.find_element('_malicious_hit_count').Update(data.malicious_hit_count)
+            window.find_element('_inner_file_scan').Update(data.inner_file_count)
+            window.find_element('_top_processes').Update("Top 10 Processes\n"+ \
                 data.get_top_processes(10))
-            window.FindElement('_top_paths').Update("Top 10 Paths\n"+data.get_top_paths(10))
-            window.FindElement('_top_extensions').Update("Top 10 Extensions\n"+ \
+            window.find_element('_top_paths').Update("Top 10 Paths\n"+data.get_top_paths(10))
+            window.find_element('_top_extensions').Update("Top 10 Extensions\n"+ \
                 data.get_top_extensions(10))
-            window.FindElement('_top_folders').Update("Top 10 Folders\n"+data.get_top_folders(10))
-            window.FindElement('_top_exclusions').Update("Top 10 Exclusions Hit\n"+data.get_top_exclusions(10))
+            window.find_element('_top_folders').Update("Top 10 Folders\n"+data.get_top_folders(10))
+            window.find_element('_top_exclusions').Update("Top 10 Exclusions Hit\n"+data.get_top_exclusions(10))
         elif event == "Reset SFC File":
             data.sfc_path = "{}/{}/sfc.exe.log".format(data.root_path, data.version)
             window.Element("_path_display").Update("Current SFC Log: {}".format(data.sfc_path))
@@ -510,6 +511,28 @@ def diag_failed_popup():
         ]
 
     window = sg.Window("Diagnostic Error", layout)
+
+    while True:
+        event, values = window.Read()
+        logging.debug('Event - %s : Values - %s', event, values)
+        if event in (None, 'OK', 'Cancel'):
+            break
+    window.close()
+    return
+
+def bad_exclusions_popup():
+    '''
+    Show information on exclusions that are not recommended by Cisco.
+    '''
+
+    bad_exclusions_list_text = "\n".join([str(x) for x in bad_exclusions_list])
+    layout = [
+        [sg.Multiline(f"{bad_exclusions_list_text}", size=(105, 50))],
+
+        [sg.OK()],
+        ]
+
+    window = sg.Window("Exclusions NOT Recommended", layout)
 
     while True:
         event, values = window.Read()

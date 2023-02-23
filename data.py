@@ -79,14 +79,7 @@ class Data:
             self.verify_api_creds()
         else:
             load_dotenv()
-            logging.debug("Loading credentials from .env")
-            self.client_id = os.getenv('CLIENT_ID')
-            self.api_key = os.getenv('API_KEY')
-            self.region = os.getenv('REGION')
-            self.sx_client_id = os.getenv('SX_CLIENT_ID')
-            self.sx_api_key = os.getenv('SX_API_KEY')
-            self.org_name = os.getenv('ORG_NAME')
-            self.auth = (self.client_id, self.api_key)
+            self.load_dotenv_data()
             self.verify_api_creds()
         self.parse_xml()
         self.debug_check()
@@ -114,6 +107,19 @@ class Data:
         self.isolation_check()
         self.conn_test_results = {}
         logging.info('Data imports completed')
+
+    def load_dotenv_data(self):
+        logging.debug("Loading credentials from .env")
+        self.client_id = os.getenv('CLIENT_ID')
+        self.api_key = os.getenv('API_KEY')
+        self.region = os.getenv('REGION')
+        self.sx_client_id = os.getenv('SX_CLIENT_ID')
+        self.sx_api_key = os.getenv('SX_API_KEY')
+        self.org_name = os.getenv('ORG_NAME')
+        self.auth = (self.client_id, self.api_key)
+        if self.org_name == None:
+            logging.info(f"Organization name not found in .env file. Check .env file for proper ORG_NAME.")
+            exit(f"Organization name not found in .env file. Check .env file for proper ORG_NAME.")
 
     def get_list_of_folders(self, file_path):
         r"""
@@ -554,8 +560,11 @@ class Data:
         try:
             root = self.get_root(path)
         except OSError as e:
-            root = self.pull_policy_from_sx()
-
+            if self.api_cred_valid == True:
+                root = self.pull_policy_from_sx()
+            else:
+                logging.debug("Unable to pull policy due to invalid Secure Endpoint API credentials.")
+                exit("Unable to pull policy due to invalid Secure Endpoint API credentials.")
         policy_dict["path_exclusions"] = self.dig_thru_xml("Object", "config", "exclusions", \
             "info", "item", root=root, is_list=True)
         logging.debug("path exclusions: %s", policy_dict['path_exclusions'])
@@ -732,6 +741,9 @@ class Data:
             self.api_cred_valid = False
         except AttributeError:
             self.api_cred_valid = False
+        except UnboundLocalError:
+            logging.debug("Region not found in .env file.  Refer to the README to fix this issue, and try running the program again.")
+            exit("Region not found in .env file.  Refer to the README to fix this issue, and try running the program again.")
 
     def connectivity_check(self, window=None):
         '''
@@ -757,7 +769,7 @@ class Data:
             except WindowsError:
                 logging.warning("WinError for %s", url)
                 self.conn_test_results[url] = 'Red'
-            window.FindElement(url).Update(background_color=self.conn_test_results[url])
+            window.find_element(url).Update(background_colors=self.conn_test_results[url])
             logging.debug("conn for %s complete: %s", url, self.conn_test_results[url])
             window.Refresh()
 
@@ -888,7 +900,9 @@ class Data:
         for org in org_response.json()['data']:
             if org['name'] == self.org_name:
                 self.org_id = org['organizationIdentifier']
-
+        if not hasattr(self, 'org_id'):
+            logging.info("Organization name in .env file not found in authorized SecureX Orgs. Check .env file information for accuracy.")
+            exit("Organization name in .env file not found in authorized SecureX Orgs. Check .env file information for accuracy.")
         policy_xml_url = f"{base_secure_endpoint_url}/organizations/{self.org_id}/policies/{self.policy_uuid}/xml"
         policy_response = requests.get(policy_xml_url, headers=headers)
         if policy_response.status_code == 404:
@@ -925,8 +939,8 @@ class Data:
         # Authenticate with SecureX and get an access_token
         sx_response = requests.post(securex_url, headers=headers, data=data, auth=auth)
         if sx_response.status_code == 400:
-            logging.warning("Please check your apiCreds.txt file for proper credentials and try again.")
-            exit("Please check your apiCreds.txt file for proper credentials and try again.")
+            logging.warning("Please check your .env file for proper SecureX credentials and try again.")
+            exit("Please check your .env file for proper SecureX credentials and try again.")
         sx_access_token = (sx_response.json().get("access_token"))
 
         # Get Secure Endpoints access_token
