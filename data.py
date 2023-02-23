@@ -560,11 +560,11 @@ class Data:
         try:
             root = self.get_root(path)
         except OSError as e:
-            if self.api_cred_valid == True:
-                root = self.pull_policy_from_sx()
-            else:
-                logging.debug("Unable to pull policy due to invalid Secure Endpoint API credentials.")
+            if self.api_cred_valid == False:
+                logging.info("Unable to pull policy due to invalid Secure EnQdpoint API credentials.")
                 exit("Unable to pull policy due to invalid Secure Endpoint API credentials.")
+            root = self.pull_policy_from_sx()
+
         policy_dict["path_exclusions"] = self.dig_thru_xml("Object", "config", "exclusions", \
             "info", "item", root=root, is_list=True)
         logging.debug("path exclusions: %s", policy_dict['path_exclusions'])
@@ -742,7 +742,7 @@ class Data:
         except AttributeError:
             self.api_cred_valid = False
         except UnboundLocalError:
-            logging.debug("Region not found in .env file.  Refer to the README to fix this issue, and try running the program again.")
+            logging.info("Region not found in .env file.  Refer to the README to fix this issue, and try running the program again.")
             exit("Region not found in .env file.  Refer to the README to fix this issue, and try running the program again.")
 
     def connectivity_check(self, window=None):
@@ -939,7 +939,7 @@ class Data:
         # Authenticate with SecureX and get an access_token
         sx_response = requests.post(securex_url, headers=headers, data=data, auth=auth)
         if sx_response.status_code == 400:
-            logging.warning("Please check your .env file for proper SecureX credentials and try again.")
+            logging.info("Please check your .env file for proper SecureX credentials and try again.")
             exit("Please check your .env file for proper SecureX credentials and try again.")
         sx_access_token = (sx_response.json().get("access_token"))
 

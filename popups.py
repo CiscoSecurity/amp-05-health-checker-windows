@@ -527,6 +527,9 @@ def bad_exclusions_popup():
 
     bad_exclusions_list_text = "\n".join([str(x) for x in bad_exclusions_list])
     layout = [
+        [sg.Text("THIS IS NOT A LIST OF EXCLUSIONS IN YOUR ENVIRONMENT, BUT A LIST OF EXCLUSIONS WE RECOMMEND AGAINST!")],
+        [sg.Text("For the most up to date list and additional information refer to")],
+        [sg.Text("https://www.cisco.com/c/en/us/support/docs/security/amp-endpoints/213681-best-practices-for-amp-for-endpoint-excl.html")],
         [sg.Multiline(f"{bad_exclusions_list_text}", size=(105, 50))],
 
         [sg.OK()],
