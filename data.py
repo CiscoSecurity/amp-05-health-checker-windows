@@ -119,7 +119,7 @@ class Data:
         self.auth = (self.client_id, self.api_key)
         if self.org_name == None:
             logging.info(f"Organization name not found in .env file. Check .env file for proper ORG_NAME.")
-            exit(f"Organization name not found in .env file. Check .env file for proper ORG_NAME.")
+            sys.exit(f"Organization name not found in .env file. Check .env file for proper ORG_NAME.")
 
     def get_list_of_folders(self, file_path):
         r"""
@@ -562,7 +562,7 @@ class Data:
         except OSError as e:
             if self.api_cred_valid == False:
                 logging.info("Unable to pull policy due to invalid Secure EnQdpoint API credentials.")
-                exit("Unable to pull policy due to invalid Secure Endpoint API credentials.")
+                sys.exit("Unable to pull policy due to invalid Secure Endpoint API credentials.")
             root = self.pull_policy_from_sx()
 
         policy_dict["path_exclusions"] = self.dig_thru_xml("Object", "config", "exclusions", \
@@ -743,7 +743,7 @@ class Data:
             self.api_cred_valid = False
         except UnboundLocalError:
             logging.info("Region not found in .env file.  Refer to the README to fix this issue, and try running the program again.")
-            exit("Region not found in .env file.  Refer to the README to fix this issue, and try running the program again.")
+            sys.exit("Region not found in .env file.  Refer to the README to fix this issue, and try running the program again.")
 
     def connectivity_check(self, window=None):
         '''
@@ -888,10 +888,10 @@ class Data:
             self.policy_uuid = j['data']['policy']['guid']
         except requests.exceptions.ConnectionError:
             logging.warning("requests.exceptions.ConnectionError")
-            exit("Unable to pull the policy guid due to requests.exceptions.ConnectionError")
+            sys.exit("Unable to pull the policy guid due to requests.exceptions.ConnectionError")
         except KeyError:
             logging.warning("KeyError")
-            exit("Unable to pull the policy guid due to KeyError")
+            sys.exit("Unable to pull the policy guid due to KeyError")
         se_access_token, base_secure_endpoint_url = self.get_se_access_token()
 
         org_id_url = f"{base_secure_endpoint_url}/organizations?size=100"
@@ -902,7 +902,7 @@ class Data:
                 self.org_id = org['organizationIdentifier']
         if not hasattr(self, 'org_id'):
             logging.info("Organization name in .env file not found in authorized SecureX Orgs. Check .env file information for accuracy.")
-            exit("Organization name in .env file not found in authorized SecureX Orgs. Check .env file information for accuracy.")
+            sys.exit("Organization name in .env file not found in authorized SecureX Orgs. Check .env file information for accuracy.")
         policy_xml_url = f"{base_secure_endpoint_url}/organizations/{self.org_id}/policies/{self.policy_uuid}/xml"
         policy_response = requests.get(policy_xml_url, headers=headers)
         if policy_response.status_code == 404:
@@ -940,7 +940,7 @@ class Data:
         sx_response = requests.post(securex_url, headers=headers, data=data, auth=auth)
         if sx_response.status_code == 400:
             logging.info("Please check your .env file for proper SecureX credentials and try again.")
-            exit("Please check your .env file for proper SecureX credentials and try again.")
+            sys.exit("Please check your .env file for proper SecureX credentials and try again.")
         sx_access_token = (sx_response.json().get("access_token"))
 
         # Get Secure Endpoints access_token
