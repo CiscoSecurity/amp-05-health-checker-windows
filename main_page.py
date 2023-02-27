@@ -18,7 +18,7 @@ def main():
     logging.basicConfig(
         format='%(asctime)s %(name)-12s %(levelname)-8s %(filename)s %(funcName)s %(message)s',
         datefmt='%m-%d %H:%M:%S',
-        level=logging.DEBUG,
+        level=logging.INFO,
         filename="amp_health_checker_log.log"
         )
     logging.warning("AMP Health Checker logging level is %s", \
@@ -82,7 +82,9 @@ def main():
                         files for analysis.")],
         [sg.Button("Generate Diagnostic", button_color=('black', '#F0F0F0'), size=button_size, \
             tooltip="Generate AMP diagnostic bundle with AMP Health Checker log. Both files \
-                will be on the desktop.")],
+                will be on the desktop."),
+                sg.Button("Bad Exclusions List", button_color=('black', '#F0F0F0'), size=button_size, \
+                tooltip="Show list of exclusions that may lead to coverage gaps.")],
         [sg.Text('Log Level: ', tooltip="Select higher log level if requested by the \
             tool developers."), sg.Button('INFO', button_color=('white', 'green'), \
                 key='_INFO'), sg.Button('WARNING', button_color=('black', '#F0F0F0'), \
@@ -120,62 +122,62 @@ def main():
             x_count = 0
         d_instance.update()
         logging.debug('Self Scan Count = %s', d_instance.internal_health_check)
-        window.FindElement('_version').Update(d_instance.version)
-        window.FindElement('_cpu').Update(d_instance.current_cpu)
-        window.FindElement('_uptime').Update(d_instance.converted_uptime)
-        window.FindElement('_tetra_version').Update(d_instance.tetra_version_display)
-        window.FindElement('_policy_version').Update(d_instance.policy_dict['policy_sn'])
-        window.FindElement('_api_cred_valid').Update('Valid' if d_instance.api_cred_valid \
+        window.find_element('_version').Update(d_instance.version)
+        window.find_element('_cpu').Update(d_instance.current_cpu)
+        window.find_element('_uptime').Update(d_instance.converted_uptime)
+        window.find_element('_tetra_version').Update(d_instance.tetra_version_display)
+        window.find_element('_policy_version').Update(d_instance.policy_dict['policy_sn'])
+        window.find_element('_api_cred_valid').Update('Valid' if d_instance.api_cred_valid \
              else 'Invalid')
-        window.FindElement('_isolated').Update(d_instance.isolated)
-        window.FindElement('_unlock_code').Update(d_instance.unlock_code)
+        window.find_element('_isolated').Update(d_instance.isolated)
+        window.find_element('_unlock_code').Update(d_instance.unlock_code)
         if event in (None, "Cancel"):
             break
         elif event == "_NAM":
             d_instance.region = 'NAM'
-            window.FindElement('_NAM').Update(button_color=('white', 'green'))
-            window.FindElement('_EU').Update(button_color=('black', '#F0F0F0'))
-            window.FindElement('_APJC').Update(button_color=('black', '#F0F0F0'))
+            window.find_element('_NAM').Update(button_color=('white', 'green'))
+            window.find_element('_EU').Update(button_color=('black', '#F0F0F0'))
+            window.find_element('_APJC').Update(button_color=('black', '#F0F0F0'))
             d_instance.verify_api_creds()
             window.Refresh()
         elif event == '_EU':
             d_instance.region = 'EU'
-            window.FindElement('_NAM').Update(button_color=('black', '#F0F0F0'))
-            window.FindElement('_EU').Update(button_color=('white', 'green'))
-            window.FindElement('_APJC').Update(button_color=('black', '#F0F0F0'))
+            window.find_element('_NAM').Update(button_color=('black', '#F0F0F0'))
+            window.find_element('_EU').Update(button_color=('white', 'green'))
+            window.find_element('_APJC').Update(button_color=('black', '#F0F0F0'))
             d_instance.verify_api_creds()
             window.Refresh()
         elif event == '_APJC':
             d_instance.region = 'APJC'
-            window.FindElement('_NAM').Update(button_color=('black', '#F0F0F0'))
-            window.FindElement('_EU').Update(button_color=('black', '#F0F0F0'))
-            window.FindElement('_APJC').Update(button_color=('white', 'green'))
+            window.find_element('_NAM').Update(button_color=('black', '#F0F0F0'))
+            window.find_element('_EU').Update(button_color=('black', '#F0F0F0'))
+            window.find_element('_APJC').Update(button_color=('white', 'green'))
             d_instance.verify_api_creds()
             window.Refresh()
         elif event == "_INFO":
             logging.getLogger().setLevel(logging.INFO)
             logging.info('Log level changed to %s', logging.getLevelName( \
                 logging.getLogger().level))
-            window.FindElement('_INFO').Update(button_color=('white', 'green'))
-            window.FindElement('_WARNING').Update(button_color=('black', '#F0F0F0'))
-            window.FindElement('_DEBUG').Update(button_color=('black', '#F0F0F0'))
+            window.find_element('_INFO').Update(button_color=('white', 'green'))
+            window.find_element('_WARNING').Update(button_color=('black', '#F0F0F0'))
+            window.find_element('_DEBUG').Update(button_color=('black', '#F0F0F0'))
             window.Refresh()
         elif event == '_WARNING':
             logging.getLogger().setLevel(logging.WARNING)
             logging.warning('Log level changed to %s', logging.getLevelName( \
                 logging.getLogger().level))
-            window.FindElement('_INFO').Update(button_color=('black', '#F0F0F0'))
-            window.FindElement('_WARNING').Update(button_color=('white', 'green'))
-            window.FindElement('_DEBUG').Update(button_color=('black', '#F0F0F0'))
+            window.find_element('_INFO').Update(button_color=('black', '#F0F0F0'))
+            window.find_element('_WARNING').Update(button_color=('white', 'green'))
+            window.find_element('_DEBUG').Update(button_color=('black', '#F0F0F0'))
             d_instance.verify_api_creds()
             window.Refresh()
         elif event == '_DEBUG':
             logging.getLogger().setLevel(logging.DEBUG)
             logging.debug('Log level changed to %s', logging.getLevelName( \
                 logging.getLogger().level))
-            window.FindElement('_INFO').Update(button_color=('black', '#F0F0F0'))
-            window.FindElement('_WARNING').Update(button_color=('black', '#F0F0F0'))
-            window.FindElement('_DEBUG').Update(button_color=('white', 'green'))
+            window.find_element('_INFO').Update(button_color=('black', '#F0F0F0'))
+            window.find_element('_WARNING').Update(button_color=('black', '#F0F0F0'))
+            window.find_element('_DEBUG').Update(button_color=('white', 'green'))
             d_instance.verify_api_creds()
             window.Refresh()
         elif event == "Live Debugging":
@@ -205,6 +207,8 @@ def main():
             d_instance.generate_diagnostic()
             if d_instance.diag_failed:
                 popups.diag_failed_popup()
+        elif event == "Bad Exclusions List":
+            popups.bad_exclusions_popup()
     if d_instance.enabled_debug:
         d_instance.disable_debug()
     window.close()
