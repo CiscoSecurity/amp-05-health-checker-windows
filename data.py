@@ -967,18 +967,20 @@ class Data:
         If any matches are found, return them.
         TODO - Once an API call is implemented to pull details for the Cisco Maintained Exclusions, use that call instead of this hard coded json 
         '''
-
         recommendations = {"Microsoft Windows Default": ["Always Recommended"]}
-        processes = self.get_top_processes()
-        if processes != "":
-            for process_line in processes.split("\n"):
-                process = process_line.split("|")[1].split("\\")[-1].lower()
+
+        for proc in psutil.process_iter():
+            try:
+                process = proc.name()
                 for program in TEMP_MAINTAINED_EXCLUSIONS:
                     if process in TEMP_MAINTAINED_EXCLUSIONS[program]:
                         if program in recommendations:
                             recommendations[program].append(process)
                         else:
                             recommendations[program] = [process]
+            except psutil.NoSuchProcess:
+                logging.warning("Error: psutil.NoSuchProcess")
+
         return recommendations
 
 def main():
