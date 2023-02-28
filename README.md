@@ -1,6 +1,6 @@
 # AMP Health Checker for Windows
 
-## AUTHENTICAION UPDATE December 2022
+## AUTHENTICATION UPDATE December 2022
 
 Due to changes in the accessibility of the policy.xml file in the 8.1.3 release, authentication for the Health Checker tool had to be updated to include SecureX API authenticaiton. The SecureX API allows access to the policy.xml file which is required for proper operation of the tool. See the API Credentials section below for more information.
 
