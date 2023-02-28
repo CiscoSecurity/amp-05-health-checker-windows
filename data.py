@@ -773,7 +773,7 @@ class Data:
             except WindowsError:
                 logging.warning("WinError for %s", url)
                 self.conn_test_results[url] = 'Red'
-            window.find_element(url).Update(background_colors=self.conn_test_results[url])
+            window.find_element(url).Update(background_color=self.conn_test_results[url])
             logging.debug("conn for %s complete: %s", url, self.conn_test_results[url])
             window.Refresh()
 
