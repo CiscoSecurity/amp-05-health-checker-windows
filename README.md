@@ -96,7 +96,7 @@ The SX_CLIENT_ID and SX_API_KEY will be generated in the [SecureX console](https
 
 The ORG_NAME is your SecureX Organization name. Keep in mind you may have more than one organization so choose the appropriate one that matches your Secure Endpoint deployment. The SecureX Organization name is displayed in the top right corner of the SecureX console.
 
-You can use the dot_env_example file as an example.
+You can use the .env file as an example and just fill in your information.
 
 ![](images/Org_Name.png)
 
