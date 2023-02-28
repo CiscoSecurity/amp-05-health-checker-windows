@@ -60,7 +60,7 @@ For additional information on Endpoint Isolation, please refer to the [Secure En
 
 ### TETRA Version
 
-This displays the current TETRA definition version downloaded by the AMP connector. Click the Check TETRA Version button to check that against the version available in the cloud. If you have the latest version, it will be highlighted Green. If you have a version within the last five updates, it will be highlighted Yellow. If your version is more than five updates behind, it will be highlighted Red. Also, the current version will be displayed on the right.
+This displays the current TETRA definition version downloaded by the AMP connector. Click the Check TETRA Version button to check that against the version available in the cloud. If you have the latest version, it will be highlighted Green. If you have a version within the last five updates, it will be highlighted Yellow. If your version is more than five updates behind, it will be highlighted Red. Also, the current version will be displayed after the check.
 
 ![](/images/TETRA_Version.png)
 
@@ -68,7 +68,7 @@ NOTE: This functionality does not require API Credentials.
 
 ### Policy Serial
 
-This displays the current Policy Serial number in place on the local connector. Click the Check Policy Version button to check that against the version available in the cloud. If you have the latest version, it will be highlighted Green. If your version is not the latest, it will be highlighted Red. Also, the latest version available will be displayed on the right.
+This displays the current Policy Serial number in place on the local connector. Click the Check Policy Version button to check that against the version available in the cloud. If you have the latest version, it will be highlighted Green. If your version is not the latest, it will be highlighted Red. Also, the latest version available will be displayed after the check.
 
 NOTE: Requires Secure Endpoint API Credentials.
 
@@ -155,6 +155,10 @@ The Check Engines button will show each engine and whether or not it is enabled 
 Manual SFC Analysis allows you to run analysis on a file from another machine or an old file from the same machine. The sfc.exe.log file from the local machine is selected by default but you can change this with the Change SFC File button. Click Analyze to run the analysis. Click Reset SFC File to reset the file back to the local sfc.exe.log file.
 
 ![](images/Manual_Analysis.png)
+
+### Recommend Exclusions
+
+Click to recommend Cisco Maintained Exclusions lists based on processes seen on the endpoint. The lists are currently provided by a hard-coded json. An API call for Cisco Maintained Exclusion details is on the roadmap so this will be used once available.
 
 ### Log Level
 
