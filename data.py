@@ -24,6 +24,7 @@ from dotenv import load_dotenv
 from nam_urls import NAMADDRESSLIST
 from eu_urls import EUADDRESSLIST
 from apjc_urls import APJCADDRESSLIST
+from temp_maintained_exclusions import TEMP_MAINTAINED_EXCLUSIONS
 # try:
 #     import apiCreds # pylint: disable=import-error
 # except ModuleNotFoundError:
@@ -959,6 +960,26 @@ class Data:
         se_access_token = se_response.json().get("access_token")
         logging.debug(f"SE ACCESS TOKEN: {se_access_token}")
         return se_access_token, base_secure_endpoint_url
+
+    def recommend_exclusions(self):
+        '''        
+        Loop through the processes seen on the endpoint and compare them with Cisco Maintained Exclusions.
+        If any matches are found, return them.
+        TODO - Once an API call is implemented to pull details for the Cisco Maintained Exclusions, use that call instead of this hard coded json 
+        '''
+
+        recommendations = {"Microsoft Windows Default": ["Always Recommended"]}
+        processes = self.get_top_processes()
+        if processes != "":
+            for process_line in processes.split("\n"):
+                process = process_line.split("|")[1].split("\\")[-1].lower()
+                for program in TEMP_MAINTAINED_EXCLUSIONS:
+                    if process in TEMP_MAINTAINED_EXCLUSIONS[program]:
+                        if program in recommendations:
+                            recommendations[program].append(process)
+                        else:
+                            recommendations[program] = [process]
+        return recommendations
 
 def main():
     '''
