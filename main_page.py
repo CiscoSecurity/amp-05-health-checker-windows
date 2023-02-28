@@ -40,21 +40,22 @@ def main():
          sg.Text("", tooltip="If Isolated, shows the unlock code. Requires valid API Credentials \
              .", size=(17, 1), key="_unlock_code")],
         [sg.Text('_'*50)],
-        [sg.Text("TETRA Version: ", size=(11, 1)), sg.Text("", size=(8, 1), key="_tetra_version", \
+        [sg.Text("TETRA Version: ", size=(12, 1)), sg.Text("", size=(7, 1), key="_tetra_version", \
             tooltip="Shows the local TETRA version.\nGreen if up to date.\nYellow if not within \
                 last 5 or connectivity error to API.\nRed if TETRA is not enabled."),
          sg.Button('Check TETRA Version', size=button_size, button_color=('black', '#F0F0F0'), \
             key='_tetra_version_button', tooltip="Checks the API to see if TETRA is up to date. \
-                Requires Valid API Credentials."), sg.Text("", key="_latest_tetra_version", \
-                    size=(8, 1))],
-        [sg.Text("Policy Serial: ", size=(11, 1)), sg.Text("", size=(8, 1), \
+                Requires Valid API Credentials.")], 
+        [sg.Text("", key="_latest_tetra_version", size=(8, 1))],
+        [sg.Text("Policy Serial: ", size=(12, 1)), sg.Text("", size=(7, 1), \
             key="_policy_version", tooltip="Shows the current policy serial number.\nGreen \
                 if this matches the cloud version.\nYellow if there is a connectivity issue or \
                     invalid API Credentials.\nRed if the local policy doesn't match the cloud \
                         version.  Try syncing policy."),
          sg.Button("Check Policy Version", size=button_size, button_color=('black', '#F0F0F0'), \
             key='_policy_version_button', tooltip="Checks the API to see if the policy is up \
-                to date."), sg.Text("", key="_latest_policy_version", size=(8, 1))],
+                to date.")], 
+        [sg.Text("", key="_latest_policy_version", size=(20, 1))],
         [sg.Text("API Credentials: ", size=(13, 1), tooltip='Shows if the currently stored API \
             Credentials are valid. Can read from text file named "apiCreds.txt" in the local \
                 directory.\nMust be in this format:\nclient_id="abcdabcdabcdabcdabcd"\napi_key= \
@@ -83,22 +84,23 @@ def main():
         [sg.Button("Generate Diagnostic", button_color=('black', '#F0F0F0'), size=button_size, \
             tooltip="Generate AMP diagnostic bundle with AMP Health Checker log. Both files \
                 will be on the desktop."),
-                sg.Button("Bad Exclusions List", button_color=('black', '#F0F0F0'), size=button_size, \
-                tooltip="Show list of exclusions that may lead to coverage gaps.")],
-        [sg.Text('Log Level: ', tooltip="Select higher log level if requested by the \
-            tool developers."), sg.Button('INFO', button_color=('white', 'green'), \
-                key='_INFO'), sg.Button('WARNING', button_color=('black', '#F0F0F0'), \
-                    key="_WARNING"), sg.Button('DEBUG', button_color=('black', '#F0F0F0'), \
-                        key="_DEBUG")],
-        [sg.Text('Region: ', tooltip="Shows which region you have selected.  Change this \
-            if using EU or APJC cloud for your deployment."), sg.Button('NAM', \
-                button_color=('white', 'green'), key='_NAM'), sg.Button('EU', \
-                    button_color=('black', '#F0F0F0'), key="_EU"), sg.Button('APJC', \
-                        button_color=('black', '#F0F0F0'), key="_APJC"),
-         sg.Text('', size=(8, 1)), sg.Button("Refresh", size=(7, 1), button_color=('black', \
-            '#F0F0F0'), tooltip="Refreshes calculated data, including Isolation Status."), \
+                sg.Button("Recommend Exclusions", button_color=('black', '#F0F0F0'), size=button_size, \
+                tooltip="Check processes seen versus Cisco Maintained Exclusions lists and make recommendations.")],
+        [sg.Text('Log Level:', tooltip="Select higher log level if requested by the \
+            tool developers.", size=(9, 1)), sg.Button('INFO', button_color=('white', 'green'), \
+                key='_INFO', size=(9, 1)), sg.Button('WARNING', button_color=('black', '#F0F0F0'), \
+                    key="_WARNING", size=(9, 1)), sg.Button('DEBUG', button_color=('black', '#F0F0F0'), \
+                        key="_DEBUG", size=(9, 1))],
+        [sg.Text('Region:', tooltip="Shows which region you have selected.  Change this \
+            if using EU or APJC cloud for your deployment.", size=(9, 1)), sg.Button('NAM', \
+                button_color=('white', 'green'), key='_NAM', size=(9, 1)), sg.Button('EU', \
+                    button_color=('black', '#F0F0F0'), key="_EU", size=(9, 1)), sg.Button('APJC', \
+                        button_color=('black', '#F0F0F0'), key="_APJC", size=(9, 1))],
+         [sg.Text(size=(9, 1)), sg.Button("Links", size=(9, 1), button_color=('black', '#F0F0F0')), 
+            sg.Button("Refresh", size=(9, 1), button_color=('black', '#F0F0F0'), 
+                tooltip="Refreshes calculated data, including Isolation Status."), 
                 sg.Button("Cancel", button_color=('black', '#F0F0F0'), \
-                    tooltip="Exits the program.")]
+                    tooltip="Exits the program.", size=(9, 1))]
     ]
     logging.debug('test')
     window = sg.Window("AMP Health Check", layout)
@@ -207,8 +209,10 @@ def main():
             d_instance.generate_diagnostic()
             if d_instance.diag_failed:
                 popups.diag_failed_popup()
-        elif event == "Bad Exclusions List":
-            popups.bad_exclusions_popup()
+        elif event == "Recommend Exclusions":
+            popups.recommend_exclusions(d_instance)
+        elif event == "Links":
+            popups.links_popup()
     if d_instance.enabled_debug:
         d_instance.disable_debug()
     window.close()

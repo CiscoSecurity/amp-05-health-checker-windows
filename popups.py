@@ -272,7 +272,8 @@ def check_latest_tetra(data, window):
     window.find_element('_tetra_version_button').Update(disabled=True)
     window.Refresh()
     data.tetra_def_compare()
-    window.Element("_latest_tetra_version").Update(data.tetra_latest)
+    window.Element("_latest_tetra_version").set_size((25, 1))
+    window.Element("_latest_tetra_version").Update(f"Latest Version:     {data.tetra_latest}")
     window.find_element('_tetra_version').Update(background_color=data.tetra_color)
     window.find_element('_tetra_version_button').Update(disabled=False)
     window.Refresh()
@@ -292,7 +293,8 @@ def check_latest_policy(data, window):
         window.Element("_latest_policy_version").Update("Invalid API")
         return
     data.policy_serial_compare(data.policy_dict['policy_uuid'], data.policy_dict['policy_sn'])
-    window.Element("_latest_policy_version").Update(data.policy_serial)
+    window.Element("_latest_policy_version").set_size((25, 1))
+    window.Element("_latest_policy_version").Update(f"Latest Serial:        {data.policy_serial}")
     window.find_element('_policy_version').Update(background_color=data.policy_color)
     window.find_element('_policy_version_button').Update(disabled=False)
     window.Refresh()
@@ -521,6 +523,36 @@ def diag_failed_popup():
     window.close()
     return
 
+def recommend_exclusions(data):
+    '''
+    Show Exclusions options    
+    '''
+    recommendations_dict = data.recommend_exclusions()
+    recommendations_string = ""
+    for k,v in recommendations_dict.items():
+        recommendations_string += f"{k} - {v}\n"
+
+    layout = [
+        [sg.Text("These recommendations are based on processes seen on the endpoint.")],
+        [sg.Text("Cisco Maintained Exclusions List - Executable(s) identified")],
+        [sg.Multiline(f"{recommendations_string}", size=(100, 12), key="_recommendations")],
+        [sg.Button("Exclusions NOT Recommended", button_color=('black', '#F0F0F0'), size=(25, 1), 
+            tooltip="Show list of exclusions that may lead to coverage gaps.")]
+    ]
+
+    window = sg.Window("Recommend Exclusions", layout)
+
+    while True:
+        event, values = window.Read()
+        logging.debug('Event - %s : Values - %s', event, values)
+        if event in (None, 'OK', 'Cancel'):
+            break
+        if event == "Exclusions NOT Recommended":
+            bad_exclusions_popup()
+            
+    window.close()
+    return
+
 def bad_exclusions_popup():
     '''
     Show information on exclusions that are not recommended by Cisco.
@@ -528,7 +560,8 @@ def bad_exclusions_popup():
 
     bad_exclusions_list_text = "\n".join([str(x) for x in bad_exclusions_list])
     layout = [
-        [sg.Text("THIS IS NOT A LIST OF EXCLUSIONS IN YOUR ENVIRONMENT, BUT A LIST OF EXCLUSIONS WE RECOMMEND AGAINST!")],
+        [sg.Text("THIS IS NOT A LIST OF EXCLUSIONS IN YOUR ENVIRONMENT, BUT A LIST OF EXCLUSIONS WE RECOMMEND AGAINST!",
+            text_color="red", background_color="black")],
         [sg.Text("For the most up to date list and additional information refer to")],
         [sg.Text("https://www.cisco.com/c/en/us/support/docs/security/amp-endpoints/213681-best-practices-for-amp-for-endpoint-excl.html", 
             enable_events=True, text_color='blue', key='-LINK-')],
@@ -546,6 +579,50 @@ def bad_exclusions_popup():
             break
         if event == '-LINK-':
             webbrowser.open('https://www.cisco.com/c/en/us/support/docs/security/amp-endpoints/213681-best-practices-for-amp-for-endpoint-excl.html')
+            window.find_element('-LINK-').Update(text_color='purple')
+    window.close()
+    return
+
+def links_popup():
+    '''
+    Show useful links
+    '''
+    layout = [
+        [sg.Text("Secure Endpoint Documentation", 
+            enable_events=True, text_color='blue', key='_SE_Docs')],
+        [sg.Text("API Documentation",
+            enable_events=True, text_color='blue', key='_API_Docs')],
+        [sg.Text("Cisco Community",
+            enable_events=True, text_color='blue', key='_Community')],
+        [sg.Text("Exclusion Best Practices",
+            enable_events=True, text_color='blue', key='_Exclusions')],
+        [sg.Text("Required Server Addresses for Secure Endpoint",
+            enable_events=True, text_color='blue', key='_Servers')],
+        [sg.OK()],
+        ]
+
+    window = sg.Window("Exclusions NOT Recommended", layout)
+
+    while True:
+        event, values = window.Read()
+        logging.debug('Event - %s : Values - %s', event, values)
+        if event in (None, 'OK', 'Cancel'):
+            break
+        if event == '_SE_Docs':
+            webbrowser.open('https://console.amp.cisco.com/docs')
+            window.find_element('_SE_Docs').Update(text_color='purple')
+        if event == "_API_Docs":
+            webbrowser.open('https://developer.cisco.com/docs/secure-endpoint/')
+            window.find_element('_API_Docs').Update(text_color='purple')
+        if event == "_Community":
+            webbrowser.open('https://community.cisco.com/t5/security-knowledge-base/tkb-p/4561-docs-security')
+            window.find_element('_Community').Update(text_color='purple')
+        if event == "_Exclusions":
+            webbrowser.open('https://www.cisco.com/c/en/us/support/docs/security/amp-endpoints/213681-best-practices-for-amp-for-endpoint-excl.html')
+            window.find_element('_Exclusions').Update(text_color='purple')
+        if event == "_Servers":
+            webbrowser.open('https://www.cisco.com/c/en/us/support/docs/security/sourcefire-amp-appliances/118121-technote-sourcefire-00.html')
+            window.find_element('_Servers').Update(text_color='purple')
     window.close()
     return
 

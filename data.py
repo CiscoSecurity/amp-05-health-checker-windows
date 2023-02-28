@@ -24,6 +24,7 @@ from dotenv import load_dotenv
 from nam_urls import NAMADDRESSLIST
 from eu_urls import EUADDRESSLIST
 from apjc_urls import APJCADDRESSLIST
+from temp_maintained_exclusions import TEMP_MAINTAINED_EXCLUSIONS
 # try:
 #     import apiCreds # pylint: disable=import-error
 # except ModuleNotFoundError:
@@ -772,7 +773,7 @@ class Data:
             except WindowsError:
                 logging.warning("WinError for %s", url)
                 self.conn_test_results[url] = 'Red'
-            window.find_element(url).Update(background_colors=self.conn_test_results[url])
+            window.find_element(url).Update(background_color=self.conn_test_results[url])
             logging.debug("conn for %s complete: %s", url, self.conn_test_results[url])
             window.Refresh()
 
@@ -959,6 +960,29 @@ class Data:
         se_access_token = se_response.json().get("access_token")
         logging.debug(f"SE ACCESS TOKEN: {se_access_token}")
         return se_access_token, base_secure_endpoint_url
+
+    def recommend_exclusions(self):
+        '''        
+        Loop through the processes seen on the endpoint and compare them with Cisco Maintained Exclusions.
+        If any matches are found, return them.
+        TODO - Once an API call is implemented to pull details for the Cisco Maintained Exclusions, use that call instead of this hard coded json 
+        '''
+        recommendations = {"Microsoft Windows Default": ["Always Recommended"]}
+
+        for proc in psutil.process_iter():
+            try:
+                process = proc.name().lower()
+                for program in TEMP_MAINTAINED_EXCLUSIONS:
+                    if process in TEMP_MAINTAINED_EXCLUSIONS[program]:
+                        if program in recommendations:
+                            if not process in recommendations[program]:
+                                recommendations[program].append(process)
+                        else:
+                            recommendations[program] = [process]
+            except psutil.NoSuchProcess:
+                logging.warning("Error: psutil.NoSuchProcess")
+
+        return recommendations
 
 def main():
     '''
