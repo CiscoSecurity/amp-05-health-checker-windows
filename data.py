@@ -971,11 +971,12 @@ class Data:
 
         for proc in psutil.process_iter():
             try:
-                process = proc.name()
+                process = proc.name().lower()
                 for program in TEMP_MAINTAINED_EXCLUSIONS:
                     if process in TEMP_MAINTAINED_EXCLUSIONS[program]:
                         if program in recommendations:
-                            recommendations[program].append(process)
+                            if not process in recommendations[program]:
+                                recommendations[program].append(process)
                         else:
                             recommendations[program] = [process]
             except psutil.NoSuchProcess:
