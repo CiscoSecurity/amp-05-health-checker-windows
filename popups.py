@@ -533,6 +533,8 @@ def recommend_exclusions(data):
         recommendations_string += f"{k} - {v}\n"
 
     layout = [
+        [sg.Text("These recommendations are based on activity seen since starting the Health Checker.")],
+        [sg.Text("Start the Health Checker and perform typical operations.  Then run this recommendation.")],
         [sg.Text("Cisco Maintained Exclusions List - Executable(s) identified")],
         [sg.Multiline(f"{recommendations_string}", size=(100, 12), key="_recommendations")],
         [sg.Button("Exclusions NOT Recommended", button_color=('black', '#F0F0F0'), size=(25, 1), 

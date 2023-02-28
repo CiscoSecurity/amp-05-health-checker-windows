@@ -56,7 +56,5 @@ TEMP_MAINTAINED_EXCLUSIONS = {
     "VSE": [],
     "Websense": ["dserui.exe", "endpointclassifier.exe", "kvoop.exe", "wepsvc.exe", "dserui.exe"],
     "Windows Defender": [],
-    "X1 Search": ["x1.exe"],
-    "TEST": ["powershell.exe"],
-    "TEST2": ["powershell.exe"]
+    "X1 Search": ["x1.exe"]
 }
