@@ -6,7 +6,7 @@ import logging
 import time
 import PySimpleGUI as sg
 import popups
-import psutil
+import webbrowser
 from data import Data
 
 
@@ -96,11 +96,13 @@ def main():
                 button_color=('white', 'green'), key='_NAM', size=(9, 1)), sg.Button('EU', \
                     button_color=('black', '#F0F0F0'), key="_EU", size=(9, 1)), sg.Button('APJC', \
                         button_color=('black', '#F0F0F0'), key="_APJC", size=(9, 1))],
-         [sg.Text(size=(9, 1)), sg.Button("Links", size=(9, 1), button_color=('black', '#F0F0F0')), 
+        [sg.Text("", size=(9, 1)), 
+            sg.Button("Links", size=(9, 1), button_color=('black', '#F0F0F0')), 
             sg.Button("Refresh", size=(9, 1), button_color=('black', '#F0F0F0'), 
                 tooltip="Refreshes calculated data, including Isolation Status."), 
-                sg.Button("Cancel", button_color=('black', '#F0F0F0'), \
-                    tooltip="Exits the program.", size=(9, 1))]
+            sg.Button("Cancel", button_color=('black', '#F0F0F0'), \
+                tooltip="Exits the program.", size=(9, 1))],
+        [sg.Push(), sg.Text("Leave Feedback", enable_events=True, text_color='blue', key='Feedback'), sg.Push()]
     ]
     logging.debug('test')
     window = sg.Window("AMP Health Check", layout)
@@ -213,6 +215,9 @@ def main():
             popups.recommend_exclusions(d_instance)
         elif event == "Links":
             popups.links_popup()
+        elif event == "Feedback":
+            webbrowser.open('https://github.com/CiscoSecurity/amp-05-health-checker-windows/issues/new')
+            window.find_element('Feedback').Update(text_color='purple')
     if d_instance.enabled_debug:
         d_instance.disable_debug()
     window.close()
