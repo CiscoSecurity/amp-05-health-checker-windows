@@ -341,6 +341,13 @@ class Data:
                 reg = re.findall(r'ExclusionCheck: \\\\\?\\.* is excluded', line)
                 if reg:
                     self.excluded_list.append(line.split(" ")[8])
+                    self.excluded_count += 1
+            elif "Exclusion::IsExcluded: result: 1 for" in line:
+                self.excluded_list.append(line.split(" ")[11].split(",")[0])
+                self.excluded_count += 1
+            elif "Exclusion::IsExcluded: result: 1 from cache" in line:
+                self.excluded_list.append(line.split(" ")[13])
+                self.excluded_count += 1
             elif "Cache::Get: age" in line:
                 self.cache_hit_count += 1
                 logging.debug("found Cache::Get: age %s", self.cache_hit_count)
@@ -874,6 +881,7 @@ class Data:
 
         try:
             subprocess.Popen("{}/ipsupporttool.exe".format(self.path_prelude))
+            logging.info("Diagnostic generated.")
         except OSError as e:
             logging.error(e)
             self.diag_failed = True
