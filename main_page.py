@@ -69,21 +69,21 @@ def main():
                         exclusions.")],
         [sg.Button("Live Top Processes", button_color=('black', '#F0F0F0'), size=button_size, \
             tooltip="Shows the top processes seen on the system in a live view."), \
-                sg.Button("Top IPs", button_color=('black', '#F0F0F0'), size=button_size, \
-                    tooltip="Shows the top IP addresses seen on the system in a live view.")],
+                sg.Button("Check Certs", button_color=('black', '#F0F0F0'), size=button_size, \
+                    tooltip="Check system for installation of required certificates.")],
         [sg.Button("Connectivity Test", button_color=('black', '#F0F0F0'), size=button_size, \
             key="_connectivity_test", tooltip="Test connection to the required servers for \
                 AMP operations."), sg.Button("Check Engines", button_color=('black', '#F0F0F0'), \
                     size=button_size, tooltip="Provides a quick view of which AMP engines \
                         are enabled on the system.")],
-        [sg.Button("View Exclusions", button_color=('black', '#F0F0F0'), size=button_size, \
-            tooltip="Shows the file and process exclusions from the local policy."), \
+        [sg.Button("Generate Diagnostic", button_color=('black', '#F0F0F0'), size=button_size, \
+            tooltip="Generate AMP diagnostic bundle with AMP Health Checker log. Both files \
+                will be on the desktop."), \
                 sg.Button("Manual SFC Analysis", button_color=('black', '#F0F0F0'), \
                     size=button_size, tooltip="Allows importing external sfc.exe.log \
                         files for analysis.")],
-        [sg.Button("Generate Diagnostic", button_color=('black', '#F0F0F0'), size=button_size, \
-            tooltip="Generate AMP diagnostic bundle with AMP Health Checker log. Both files \
-                will be on the desktop."),
+        [sg.Button("View Exclusions", button_color=('black', '#F0F0F0'), size=button_size, \
+            tooltip="Shows the file and process exclusions from the local policy."),
                 sg.Button("Recommend Exclusions", button_color=('black', '#F0F0F0'), size=button_size, \
                 tooltip="Check processes seen versus Cisco Maintained Exclusions lists and make recommendations.")],
         [sg.Text('Log Level:', tooltip="Select higher log level if requested by the \
@@ -200,8 +200,8 @@ def main():
             popups.view_exclusions(d_instance)
         elif event == "Run Analysis":
             popups.analysis(d_instance)
-        elif event == "Top IPs":
-            popups.topips(d_instance)
+        elif event == "Check Certs":
+            popups.check_certs()
         elif event == "Refresh":
             d_instance.reset_data()
             window.Refresh()

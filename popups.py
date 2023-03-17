@@ -3,7 +3,9 @@ This section is for all the popup GUIs off the main page.
 '''
 import logging
 import PySimpleGUI as sg
+import subprocess
 import webbrowser
+from certificates import certificates
 from data import Data
 from bad_exclusions_list import bad_exclusions_list
 
@@ -14,15 +16,17 @@ def analysis(data):
     data.update()
     layout = [
         [sg.Multiline("Top 10 Processes\n"+data.get_top_processes(10), \
-            size=(200, 10), key="_top_processes")],
+            size=(150, 8), key="_top_processes")],
         [sg.Multiline("Top 10 Paths\n"+data.get_top_paths(10), \
-            size=(200, 10), key="_top_paths")],
+            size=(150, 8), key="_top_paths")],
         [sg.Multiline("Top 10 Extensions\n"+data.get_top_extensions(10), \
-            size=(200, 10), key="_top_extensions")],
+            size=(150, 8), key="_top_extensions")],
         [sg.Multiline("Top 10 Folders\n"+data.get_top_folders(10), \
-            size=(200, 10), key="_top_folders")],
+            size=(150, 8), key="_top_folders")],
         [sg.Multiline("Top 10 Exclusions Hit\n"+data.get_top_exclusions(10), \
-            size=(200, 10), key="_top_exclusions")],
+            size=(150, 8), key="_top_exclusions")],
+        [sg.Multiline("Top 10 IPs\n"+data.get_top_ips(data.ip_list), \
+            size=(150,8), key="_top_ips")],
         [
             sg.FileSaveAs("Save As", button_color=('black', '#F0F0F0'), \
             file_types=(("Log File", "*.log"),)),
@@ -598,10 +602,12 @@ def links_popup():
             enable_events=True, text_color='blue', key='_Exclusions')],
         [sg.Text("Required Server Addresses for Secure Endpoint",
             enable_events=True, text_color='blue', key='_Servers')],
+        [sg.Text("Troubleshoot List of Root Certificates Required",
+            enable_events=True, text_color='blue', key='_Root_Certs')],
         [sg.OK()],
         ]
 
-    window = sg.Window("Exclusions NOT Recommended", layout)
+    window = sg.Window("Links", layout)
 
     while True:
         event, values = window.Read()
@@ -623,6 +629,41 @@ def links_popup():
         if event == "_Servers":
             webbrowser.open('https://www.cisco.com/c/en/us/support/docs/security/sourcefire-amp-appliances/118121-technote-sourcefire-00.html')
             window.find_element('_Servers').Update(text_color='purple')
+        if event == "_Root_Certs":
+            webbrowser.open('https://www.cisco.com/c/en/us/support/docs/security/amp-endpoints/216943-list-of-root-certificates-required-for-a.html')
+            window.find_element('_Root_Certs').Update(text_color='purple')
+    window.close()
+    return
+
+def check_certs():
+    '''
+    Check for required certificate installation    
+    '''
+    # Get the list of installed certificates
+    output = subprocess.check_output("powershell.exe Get-ChildItem -Path Cert:LocalMachine\\Root", shell=True, universal_newlines=True)
+
+    # Check each certificate in the list
+    missing_certificates = []
+    for name, thumbprint in certificates:
+        if thumbprint not in output:
+            missing_certificates.append(name)
+    missing_certificates_string = "\n".join(missing_certificates)
+
+    layout = [
+        [sg.Text("These required certificates are missing from your system.")],
+        [sg.Multiline(f"{missing_certificates_string if (len(missing_certificates) > 0) else 'None. All required certificates are installed on your machine.'}", 
+                      size=(70, 12))],
+        [sg.OK()],
+    ]
+
+    window = sg.Window("Certificates", layout)
+
+    while True:
+        event, values = window.Read()
+        logging.debug('Event - %s : Values - %s', event, values)
+        if event in (None, 'OK', 'Cancel'):
+            break
+            
     window.close()
     return
 
