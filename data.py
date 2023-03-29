@@ -67,9 +67,6 @@ class Data:
         self.inner_file_count = 0
         self.tetra_latest = 0
         self.internal_health_check = 0
-        self.region = 'NAM'
-        self.business_uuid = self.dig_thru_xml("janus", "business", "uuid", root=self.get_root("C:/Program Files/Cisco/AMP/local.xml"), tag="")
-        self.local_uuid = self.dig_thru_xml("agent", "uuid", root=self.get_root("C:/Program Files/Cisco/AMP/local.xml"), tag="")
         self.api_cred_valid = False
         self.auth = False
         if apiCreds:
@@ -82,6 +79,8 @@ class Data:
             load_dotenv()
             self.load_dotenv_data()
             self.verify_api_creds()
+        self.business_uuid = self.dig_thru_xml("janus", "business", "uuid", root=self.get_root("C:/Program Files/Cisco/AMP/local.xml"), tag="")
+        self.local_uuid = self.dig_thru_xml("agent", "uuid", root=self.get_root("C:/Program Files/Cisco/AMP/local.xml"), tag="")
         self.parse_xml()
         self.debug_check()
         self.local_uuid = self.dig_thru_xml("agent", "uuid", \
@@ -114,6 +113,7 @@ class Data:
         self.client_id = os.getenv('CLIENT_ID')
         self.api_key = os.getenv('API_KEY')
         self.region = os.getenv('REGION')
+        self.set_region_urls()
         self.sx_client_id = os.getenv('SX_CLIENT_ID')
         self.sx_api_key = os.getenv('SX_API_KEY')
         self.org_name = os.getenv('ORG_NAME')
@@ -570,7 +570,7 @@ class Data:
             root = self.get_root(path)
         except OSError as e:
             if self.api_cred_valid == False:
-                logging.info("Unable to pull policy due to invalid Secure EnQdpoint API credentials.")
+                logging.info("Unable to pull policy due to invalid Secure Endpoint API credentials.")
                 sg.popup("Unable to pull policy due to invalid Secure Endpoint API credentials.")
                 sys.exit()
             root = self.pull_policy_from_sx()
@@ -892,7 +892,7 @@ class Data:
         '''
         root = ''
         # Pull the policy uuid
-        url = "https://api.amp.cisco.com/v1/computers/{}".format(self.local_uuid)
+        url = f"{self.base_secure_endpoint_url}/v1/computers/{self.local_uuid}"
         try:
             r = requests.get(url, auth=self.auth)
             j = json.loads(r.content)
@@ -906,9 +906,9 @@ class Data:
             sg.popup("Unable to pull the policy guid due to KeyError")
             sys.exit()
             
-        se_access_token, base_secure_endpoint_url = self.get_se_access_token()
+        se_access_token = self.get_se_access_token()
 
-        org_id_url = f"{base_secure_endpoint_url}/organizations?size=100"
+        org_id_url = f"{self.base_secure_endpoint_url}/v3/organizations?size=100"
         headers = {'Authorization': f'Bearer {se_access_token}'}
         org_response = requests.get(org_id_url, headers=headers)
         for org in org_response.json()['data']:
@@ -918,7 +918,7 @@ class Data:
             logging.info("Organization name in .env file not found in authorized SecureX Orgs. Check .env file information for accuracy.")
             sg.popup("Organization name in .env file not found in authorized SecureX Orgs. Check .env file information for accuracy.")
             sys.exit()
-        policy_xml_url = f"{base_secure_endpoint_url}/organizations/{self.org_id}/policies/{self.policy_uuid}/xml"
+        policy_xml_url = f"{self.base_secure_endpoint_url}/v3/organizations/{self.org_id}/policies/{self.policy_uuid}/xml"
         policy_response = requests.get(policy_xml_url, headers=headers)
         if policy_response.status_code == 404:
             logging.debug("Policy call retured 404, check your SecureX Org ID to ensure it matches the org containing this policy.")
@@ -928,23 +928,25 @@ class Data:
         
         return self.policy_xml_root
 
+    def set_region_urls(self):
+        if self.region == "NAM":
+            self.base_securex_url = "https://visibility.amp.cisco.com"
+            self.base_secure_endpoint_url = "https://api.amp.cisco.com"
+        elif self.region == "EU":
+            self.base_securex_url = "https://visibility.eu.amp.cisco.com"
+            self.base_secure_endpoint_url = "https://api.eu.amp.cisco.com"
+        elif self.region == "APJC":
+            self.base_securex_url = "https://visibility.apjc.amp.cisco.com"
+            self.base_secure_endpoint_url = "https://api.apjc.amp.cisco.com"
+
     def get_se_access_token(self):
         """
         Authenticate with SecureX and Secure Endpoints to get a token.  
         :return Secure Endpoints access token
         """
-        if self.region == "NAM":
-            base_securex_url = "https://visibility.amp.cisco.com"
-            base_secure_endpoint_url = "https://api.amp.cisco.com/v3"
-        elif self.region == "EU":
-            base_securex_url = "https://visibility.eu.amp.cisco.com"
-            base_secure_endpoint_url = "https://api.eu.amp.cisco.com/v3"
-        elif self.region == "APJC":
-            base_securex_url = "https://visibility.apjc.amp.cisco.com"
-            base_secure_endpoint_url = "https://api.apjc.amp.cisco.com/v3"
         
         auth = (self.sx_client_id, self.sx_api_key)
-        securex_url = f"{base_securex_url}/iroh/oauth2/token"
+        securex_url = f"{self.base_securex_url}/iroh/oauth2/token"
         data = {"grant_type": "client_credentials"}
         headers = {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -960,14 +962,14 @@ class Data:
         sx_access_token = (sx_response.json().get("access_token"))
 
         # Get Secure Endpoints access_token
-        secure_endpoint_url = f"{base_secure_endpoint_url}/access_tokens"
+        secure_endpoint_url = f"{self.base_secure_endpoint_url}/v3/access_tokens"
         headers = {
             'Authorization': f'Bearer {sx_access_token}'
         }
         se_response = requests.post(secure_endpoint_url, headers=headers)
         se_access_token = se_response.json().get("access_token")
         logging.debug(f"SE ACCESS TOKEN: {se_access_token}")
-        return se_access_token, base_secure_endpoint_url
+        return se_access_token
 
     def recommend_exclusions(self):
         '''        

@@ -91,11 +91,6 @@ def main():
                 key='_INFO', size=(9, 1)), sg.Button('WARNING', button_color=('black', '#F0F0F0'), \
                     key="_WARNING", size=(9, 1)), sg.Button('DEBUG', button_color=('black', '#F0F0F0'), \
                         key="_DEBUG", size=(9, 1))],
-        [sg.Text('Region:', tooltip="Shows which region you have selected.  Change this \
-            if using EU or APJC cloud for your deployment.", size=(9, 1)), sg.Button('NAM', \
-                button_color=('white', 'green'), key='_NAM', size=(9, 1)), sg.Button('EU', \
-                    button_color=('black', '#F0F0F0'), key="_EU", size=(9, 1)), sg.Button('APJC', \
-                        button_color=('black', '#F0F0F0'), key="_APJC", size=(9, 1))],
         [sg.Text("", size=(9, 1)), 
             sg.Button("Links", size=(9, 1), button_color=('black', '#F0F0F0')), 
             sg.Button("Refresh", size=(9, 1), button_color=('black', '#F0F0F0'), 
@@ -137,27 +132,6 @@ def main():
         window.find_element('_unlock_code').Update(d_instance.unlock_code)
         if event in (None, "Cancel"):
             break
-        elif event == "_NAM":
-            d_instance.region = 'NAM'
-            window.find_element('_NAM').Update(button_color=('white', 'green'))
-            window.find_element('_EU').Update(button_color=('black', '#F0F0F0'))
-            window.find_element('_APJC').Update(button_color=('black', '#F0F0F0'))
-            d_instance.verify_api_creds()
-            window.Refresh()
-        elif event == '_EU':
-            d_instance.region = 'EU'
-            window.find_element('_NAM').Update(button_color=('black', '#F0F0F0'))
-            window.find_element('_EU').Update(button_color=('white', 'green'))
-            window.find_element('_APJC').Update(button_color=('black', '#F0F0F0'))
-            d_instance.verify_api_creds()
-            window.Refresh()
-        elif event == '_APJC':
-            d_instance.region = 'APJC'
-            window.find_element('_NAM').Update(button_color=('black', '#F0F0F0'))
-            window.find_element('_EU').Update(button_color=('black', '#F0F0F0'))
-            window.find_element('_APJC').Update(button_color=('white', 'green'))
-            d_instance.verify_api_creds()
-            window.Refresh()
         elif event == "_INFO":
             logging.getLogger().setLevel(logging.INFO)
             logging.info('Log level changed to %s', logging.getLevelName( \
