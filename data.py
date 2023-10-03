@@ -568,12 +568,14 @@ class Data:
         policy_dict = {}
         try:
             root = self.get_root(path)
+            self.policy_xml_root = root
         except OSError as e:
             if self.api_cred_valid == False:
                 logging.info("Unable to pull policy due to invalid Secure Endpoint API credentials.")
                 sg.popup("Unable to pull policy due to invalid Secure Endpoint API credentials.")
                 sys.exit()
-            root = self.pull_policy_from_sx()
+            self.pull_policy_from_sx()
+            root = self.policy_xml_root
 
         policy_dict["path_exclusions"] = self.dig_thru_xml("Object", "config", "exclusions", \
             "info", "item", root=root, is_list=True)

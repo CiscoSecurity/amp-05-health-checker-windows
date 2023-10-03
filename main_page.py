@@ -39,6 +39,8 @@ def main():
             Refresh with Refresh button."), sg.Text("", size=(12, 1), key="_isolated"),
          sg.Text("", tooltip="If Isolated, shows the unlock code. Requires valid API Credentials \
              .", size=(17, 1), key="_unlock_code")],
+        [sg.Text("Connector UUID: ", size=(12, 1)), sg.Text("", size=(30, 1), key="_connector_uuid", \
+            tooltip="UUID of the local connector")],
         [sg.Text('_'*50)],
         [sg.Text("TETRA Version: ", size=(12, 1)), sg.Text("", size=(7, 1), key="_tetra_version", \
             tooltip="Shows the local TETRA version.\nGreen if up to date.\nYellow if not within \
@@ -130,6 +132,7 @@ def main():
              else 'Invalid')
         window.find_element('_isolated').Update(d_instance.isolated)
         window.find_element('_unlock_code').Update(d_instance.unlock_code)
+        window.find_element('_connector_uuid').Update(d_instance.local_uuid)
         if event in (None, "Cancel"):
             break
         elif event == "_INFO":
