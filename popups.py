@@ -343,8 +343,6 @@ def engines_enabled(data):
             disabled=False), sg.Text('ETHOS')],
         [sg.Checkbox('', default=True if (data.policy_dict['spero'] == '1') else False, \
             disabled=False), sg.Text('SPERO')],
-        [sg.Checkbox('', default=True if (data.policy_dict['urlscanner'] == '1') else False, \
-            disabled=False), sg.Text('URL Scanner')],
         [sg.Checkbox('', default=True if (data.policy_dict['orbital'] == '1') else False, \
             disabled=False), sg.Text('Orbital')],
         [sg.Checkbox('', default=True if (data.policy_dict['endpoint_isolation'] == '1') \
