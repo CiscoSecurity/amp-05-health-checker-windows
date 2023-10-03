@@ -227,15 +227,16 @@ class Data:
         logging.debug("Starting get_version")
         path = r"C:/Program Files/Cisco/AMP"
         directory = os.listdir(path)
-        max_version = [0, 0, 0]
-        reg_version = r'\d{1,2}\.\d{1,2}\.\d{1,2}'
+        max_version = [0, 0, 0, 00000]
+        reg_version = r'\d{1,2}\.\d{1,2}\.\d{1,2}.\d{5}'
         for entry in directory:
             logging.debug("entry: %s", entry)
             reg = re.findall(reg_version, entry)
             if reg:
                 logging.debug("found match")
-                if list(map(lambda x: int(x), reg[0].split("."))) > max_version:
-                    max_version = list(map(lambda x: int(x), reg[0].split(".")))
+                temp_version = list(map(lambda x: int(x), reg[0].split(".")))
+                if temp_version > max_version and os.path.exists(f"{path}/{reg[0]}/sfc.exe"):
+                    max_version = temp_version
         return ".".join(list(map(lambda x: str(x), max_version)))
 
     def convert_line(self, line):
@@ -568,12 +569,14 @@ class Data:
         policy_dict = {}
         try:
             root = self.get_root(path)
+            self.policy_xml_root = root
         except OSError as e:
             if self.api_cred_valid == False:
                 logging.info("Unable to pull policy due to invalid Secure Endpoint API credentials.")
                 sg.popup("Unable to pull policy due to invalid Secure Endpoint API credentials.")
                 sys.exit()
-            root = self.pull_policy_from_sx()
+            self.pull_policy_from_sx()
+            root = self.policy_xml_root
 
         policy_dict["path_exclusions"] = self.dig_thru_xml("Object", "config", "exclusions", \
             "info", "item", root=root, is_list=True)

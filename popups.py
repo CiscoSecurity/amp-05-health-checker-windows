@@ -3,6 +3,7 @@ This section is for all the popup GUIs off the main page.
 '''
 import logging
 import PySimpleGUI as sg
+import re
 import subprocess
 import webbrowser
 from certificates import certificates
@@ -343,8 +344,6 @@ def engines_enabled(data):
             disabled=False), sg.Text('ETHOS')],
         [sg.Checkbox('', default=True if (data.policy_dict['spero'] == '1') else False, \
             disabled=False), sg.Text('SPERO')],
-        [sg.Checkbox('', default=True if (data.policy_dict['urlscanner'] == '1') else False, \
-            disabled=False), sg.Text('URL Scanner')],
         [sg.Checkbox('', default=True if (data.policy_dict['orbital'] == '1') else False, \
             disabled=False), sg.Text('Orbital')],
         [sg.Checkbox('', default=True if (data.policy_dict['endpoint_isolation'] == '1') \
@@ -378,13 +377,20 @@ def view_exclusions(data):
         size=(500, 400))]]
     tab2_layout = [[sg.Column(column2, scrollable=True, vertical_scroll_only=True, \
         size=(500, 400))]]
-    layout = [[sg.TabGroup([[sg.Tab('Exclusions', tab1_layout), sg.Tab('Process Exclusions', \
-        tab2_layout)]])], [sg.Button('OK', button_color=('black', '#F0F0F0'))]]
+    layout = [
+        [sg.TabGroup([[sg.Tab('Exclusions', tab1_layout), sg.Tab('Process Exclusions', \
+        tab2_layout)]])], 
+        [sg.Button('OK', button_color=('black', '#F0F0F0')),         
+         sg.Button("* Leading Exclusions Check", button_color=('black', '#F0F0F0'), size=(25, 1), key="_star_check", 
+            tooltip="Show list of star leading exclusions that should be removed.")]
+    ]
     window = sg.Window("Exclusions", layout)
 
     while True:
         event, values = window.Read()
         logging.debug('Event - %s : Values - %s', event, values)
+        if event == "_star_check":
+            star_leading_exclusions_popup(data)
         if event in (None, 'OK'):
             break
     window.close()
@@ -570,6 +576,40 @@ def bad_exclusions_popup():
         [sg.Text("https://www.cisco.com/c/en/us/support/docs/security/amp-endpoints/213681-best-practices-for-amp-for-endpoint-excl.html", 
             enable_events=True, text_color='blue', key='-LINK-')],
         [sg.Multiline(f"{bad_exclusions_list_text}", size=(105, 50))],
+
+        [sg.OK()],
+        ]
+
+    window = sg.Window("Exclusions NOT Recommended", layout)
+
+    while True:
+        event, values = window.Read()
+        logging.debug('Event - %s : Values - %s', event, values)
+        if event in (None, 'OK', 'Cancel'):
+            break
+        if event == '-LINK-':
+            webbrowser.open('https://www.cisco.com/c/en/us/support/docs/security/amp-endpoints/213681-best-practices-for-amp-for-endpoint-excl.html')
+            window.find_element('-LINK-').Update(text_color='purple')
+    window.close()
+    return
+
+def star_leading_exclusions_popup(data):
+    '''
+    Show information on * leading exclusions if they exist.
+    '''
+    star_leading_exclusions_list = []
+    reg_star = r'\d{3}[|]\d{1,2}[|]\d{1,2}[|]\d{1,2}[|][*]'
+    for exclusion in data.policy_dict["path_exclusions"]:
+        reg = re.findall(reg_star, exclusion)
+        if reg:
+            star_leading_exclusions_list.append(exclusion)
+    if len(star_leading_exclusions_list) == 0:
+        star_leading_exclusions_list.append("No * leading exclusions were found.")
+
+    layout = [
+        [sg.Text("* leading exclusions cause performance issues and should be removed from your lists!",
+            text_color="red", background_color="black")],
+        [sg.Multiline("\n".join(star_leading_exclusions_list), size=(105, 50))],
 
         [sg.OK()],
         ]
