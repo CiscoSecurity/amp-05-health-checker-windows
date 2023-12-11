@@ -663,24 +663,35 @@ class Data:
         '''
         logging.debug("Checking isolation for %s", local_uuid)
         self.unlock_code = ''
-        if self.region == 'NAM':
-            url = "https://api.amp.cisco.com/v1/computers/{}/isolation".format(local_uuid)
-        elif self.region == 'EU':
-            url = "https://api.eu.amp.cisco.com/v1/computers/{}/isolation".format(local_uuid)
-        elif self.region == 'APJC':
-            url = "https://api.apjc.amp.cisco.com/v1/computers/{}/isolation".format(local_uuid)
-        elif self.region == 'PC':
+        if self.region == 'PC':
             url = f"https://console.{self.pc_domain}/v1/computers/{local_uuid}/isolation"
-        try:
-            r = requests.get(url, auth=self.auth)
-            j = json.loads(r.content)
-            self.unlock_code = "Unlock Code: {}".format(j['data']['unlock_code'])
-        except requests.exceptions.ConnectionError:
-            logging.warning("requests.exceptions.ConnectionError")
-            self.unlock_code = ''
-        except KeyError:
-            logging.warning("KeyError")
-            self.unlock_code = ''
+            try:
+                r = requests.get(url, auth=self.auth, verify=self.pc_ca_path)
+                j = json.loads(r.content)
+                self.unlock_code = "Unlock Code: {}".format(j['data']['unlock_code'])
+            except requests.exceptions.ConnectionError:
+                logging.warning("requests.exceptions.ConnectionError")
+                self.unlock_code = ''
+            except KeyError:
+                logging.warning("KeyError")
+                self.unlock_code = ''
+        else:
+            if self.region == 'NAM':
+                url = "https://api.amp.cisco.com/v1/computers/{}/isolation".format(local_uuid)
+            elif self.region == 'EU':
+                url = "https://api.eu.amp.cisco.com/v1/computers/{}/isolation".format(local_uuid)
+            elif self.region == 'APJC':
+                url = "https://api.apjc.amp.cisco.com/v1/computers/{}/isolation".format(local_uuid)
+            try:
+                r = requests.get(url, auth=self.auth)
+                j = json.loads(r.content)
+                self.unlock_code = "Unlock Code: {}".format(j['data']['unlock_code'])
+            except requests.exceptions.ConnectionError:
+                logging.warning("requests.exceptions.ConnectionError")
+                self.unlock_code = ''
+            except KeyError:
+                logging.warning("KeyError")
+                self.unlock_code = ''
 
     def policy_serial_compare(self, policy_uuid, policy_xml_serial):
         '''
