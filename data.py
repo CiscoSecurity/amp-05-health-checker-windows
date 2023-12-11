@@ -24,10 +24,8 @@ from dotenv import load_dotenv
 from nam_urls import NAMADDRESSLIST
 from eu_urls import EUADDRESSLIST
 from apjc_urls import APJCADDRESSLIST
+from pc_urls import PCADDRESSLIST
 from temp_maintained_exclusions import TEMP_MAINTAINED_EXCLUSIONS
-# try:
-#     import apiCreds # pylint: disable=import-error
-# except ModuleNotFoundError:
 apiCreds = False
 
 class Data:
@@ -113,12 +111,15 @@ class Data:
         self.client_id = os.getenv('CLIENT_ID')
         self.api_key = os.getenv('API_KEY')
         self.region = os.getenv('REGION')
+        if self.region == "PC":
+            self.pc_domain = os.getenv('PC_DOMAIN')
+            self.pc_ca_path = os.getenv('PC_CA_PATH')
         self.set_region_urls()
         self.sx_client_id = os.getenv('SX_CLIENT_ID')
         self.sx_api_key = os.getenv('SX_API_KEY')
         self.org_name = os.getenv('ORG_NAME')
         self.auth = (self.client_id, self.api_key)
-        if self.org_name == None:
+        if self.region != "PC" and self.org_name == None:
             logging.info(f"Organization name not found in .env file. Check .env file for proper ORG_NAME.")
             sg.popup(f"Organization name not found in .env file. Check .env file for proper ORG_NAME.")
             sys.exit()
@@ -287,6 +288,8 @@ class Data:
             self.connectivity_urls = EUADDRESSLIST
         elif self.region == 'APJC':
             self.connectivity_urls = APJCADDRESSLIST
+        elif self.region == 'PC':
+            self.connectivity_urls = PCADDRESSLIST
         self.cpu_list.append((time.ctime(), self.get_cpu_usage()))
         self.current_cpu = self.cpu_list[-1][1]
         with open(self.sfc_path, errors="ignore") as file_1:
@@ -575,7 +578,38 @@ class Data:
                 logging.info("Unable to pull policy due to invalid Secure Endpoint API credentials.")
                 sg.popup("Unable to pull policy due to invalid Secure Endpoint API credentials.")
                 sys.exit()
-            self.pull_policy_from_sx()
+            if self.region == "PC":
+                # Pull the policy uuid
+                url = f"https://console.{self.pc_domain}/v1/computers/{self.local_uuid}"
+                try:
+                    r = requests.get(url, auth=self.auth, verify=self.pc_ca_path)
+                    j = json.loads(r.content)
+                    logging.debug(j)
+                    self.policy_uuid = j['data']['policy']['guid']
+                except requests.exceptions.ConnectionError:
+                    logging.warning("requests.exceptions.ConnectionError")
+                    sys.exit("Unable to pull the policy guid due to requests.exceptions.ConnectionError")
+                except KeyError:
+                    logging.warning("KeyError")
+                    sg.popup("Unable to pull the policy guid due to KeyError")
+                    sys.exit()
+                logging.debug(f"Policy serial is {self.policy_uuid}")
+                policy_xml_url = f"https://console.{self.pc_domain}/v1/policies/{self.policy_uuid}.xml"
+                try:
+                    policy_xml_response = requests.get(policy_xml_url, auth=self.auth, verify=self.pc_ca_path)
+                    logging.debug(policy_xml_response.content)
+                    self.policy_xml = policy_xml_response.content
+                    tree = ET.ElementTree(ET.fromstring(self.policy_xml))
+                    self.policy_xml_root = tree.getroot()
+                except requests.exceptions.ConnectionError:
+                    logging.warning("requests.exceptions.ConnectionError")
+                    sys.exit("Unable to pull the policy due to requests.exceptions.ConnectionError")
+                except KeyError:
+                    logging.warning("KeyError")
+                    sg.popup("Unable to pull the policy due to KeyError")
+                    sys.exit()
+            else:
+                self.pull_policy_from_sx()
             root = self.policy_xml_root
 
         policy_dict["path_exclusions"] = self.dig_thru_xml("Object", "config", "exclusions", \
@@ -635,8 +669,13 @@ class Data:
             url = "https://api.eu.amp.cisco.com/v1/computers/{}/isolation".format(local_uuid)
         elif self.region == 'APJC':
             url = "https://api.apjc.amp.cisco.com/v1/computers/{}/isolation".format(local_uuid)
+        elif self.region == 'PC':
+            url = f"https://console.{self.pc_domain}/v1/computers/{local_uuid}/isolation"     
         try:
-            r = requests.get(url, auth=self.auth)
+            if self.region == "PC":
+                r = requests.get(url, auth=self.auth, verify=self.pc_ca_path)
+            else:
+                r = requests.get(url, auth=self.auth)
             j = json.loads(r.content)
             self.unlock_code = "Unlock Code: {}".format(j['data']['unlock_code'])
         except requests.exceptions.ConnectionError:
@@ -656,9 +695,14 @@ class Data:
             url = "http://api.eu.amp.cisco.com/v1/policies/{}".format(policy_uuid)
         elif self.region == 'APJC':
             url = "http://api.apjc.amp.cisco.com/v1/policies/{}".format(policy_uuid)
+        elif self.region == "PC":
+            url = f"https://console.{self.pc_domain}/v1/policies/{policy_uuid}"
         logging.debug("requesting %s", url)
         try:
-            r = requests.get(url, auth=self.auth)
+            if self.region == "PC":
+                r = requests.get(url, auth=self.auth, verify=self.pc_ca_path)
+            else:
+                r = requests.get(url, auth=self.auth)
             j = json.loads(r.content)
             logging.debug(f"SELF.POLICY_SERIAL_RESPONSE: {j}")
             
@@ -739,9 +783,14 @@ class Data:
             url = "https://api.eu.amp.cisco.com/v1/version"
         elif self.region == 'APJC':
             url = "https://api.apjc.amp.cisco.com/v1/version"
+        elif self.region == "PC":
+            url = f"https://console.{self.pc_domain}/v1/version"
         try:
             logging.debug("Requesting {}".format(url))
-            r = requests.get(url, auth=(self.client_id, self.api_key))
+            if self.region == "PC":
+                r = requests.get(url, auth=(self.client_id, self.api_key), verify=self.pc_ca_path)
+            else:
+                r = requests.get(url, auth=(self.client_id, self.api_key))
             if r.status_code == 200:
                 logging.debug("200 response from %s", url)
                 self.api_cred_valid = True
@@ -750,9 +799,11 @@ class Data:
             else:
                 logging.debug("%s response from %s", r.status_code, url)
                 self.api_cred_valid = False
-        except requests.exceptions.ConnectionError:
+        except requests.exceptions.ConnectionError as e:
+            logging.debug(f"requests.exceptions.ConnectionError: {e}")
             self.api_cred_valid = False
         except AttributeError:
+            logging.debug(f"AttributeError: {e}")
             self.api_cred_valid = False
         except UnboundLocalError:
             logging.info("Region not found in .env file.  Refer to the README to fix this issue, and try running the program again.")
@@ -941,6 +992,8 @@ class Data:
         elif self.region == "APJC":
             self.base_securex_url = "https://visibility.apjc.amp.cisco.com"
             self.base_secure_endpoint_url = "https://api.apjc.amp.cisco.com"
+        elif self.region == "PC":
+            self.base_secure_endpoint_url = f"https://console.{self.pc_domain}"
 
     def get_se_access_token(self):
         """
