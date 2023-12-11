@@ -1,8 +1,12 @@
 # AMP Health Checker for Windows
 
+## Private Cloud UPDATE December 2023
+
+Made changes to allow for use with Private Cloud.  The .env file should contain a PC_DOMAIN and PC_CA_PATH as well as set "PC" for the region. The root certificate used for your Private Cloud needs to be accessible for the API calls to work properly.
+
 ## AUTHENTICATION UPDATE December 2022
 
-Due to changes in the accessibility of the policy.xml file in the 8.1.3 release, authentication for the Health Checker tool had to be updated to include SecureX API authenticaiton. The SecureX API allows access to the policy.xml file which is required for proper operation of the tool. See the API Credentials section below for more information.
+Due to changes in the accessibility of the policy.xml file in the 8.1.3 release, authentication for the Health Checker tool had to be updated to include SecureX API authenticaiton. The SecureX API allows access to the policy.xml file which is required for proper operation of the tool. See the API Credentials section below for more information. 
 
 The Device Control engine was also added in the Engines Check section.
 
@@ -78,6 +82,18 @@ This display will show if you have provided valid Secure Endpoint API Credential
 
 The .env file must have the following entries to pull the policy.xml which is no longer accessible locally as of the 8.1.3 release.
 
+For Public Cloud:
+    Enter a CLIENT_ID and API_KEY from the Secure Endpoint console.
+    Enter a REGION (NAM, EU, or APJC).
+    Enter a SX_CLIENT_ID and SX_API_KEY from the SecureX/XDR console.
+    Enter an ORG_NAME for the SecureX/XDR Organization.
+
+For Private Cloud:
+    Enter a CLIENT_ID and API_KEY from the Private Cloud console.
+    Enter "PC" for the region.
+    Enter your PC_DOMAIN such as test.local.
+    Enter the path to your Private Cloud root certificate, such as "C:/Users/xxxxx/Desktop/rootCA.crt"
+
 > CLIENT_ID = "01234567890abcdef012"
 
 > API_KEY = "12345678-abcd-abcd-abcd-1234567890ab"
@@ -89,6 +105,10 @@ The .env file must have the following entries to pull the policy.xml which is no
 > ORG_NAME = "Your Org Name"
 
 > REGION = "NAM"
+
+> PC_DOMAIN = "test.local"
+
+> PC_CA_PATH = "C:/Users/xxxxx/Desktop/rootCA.crt"
 
 The CLIENT_ID and API_KEY will be generated in the [Secure Endpoints console](https://console.amp.cisco.com/api_credentials).
 
