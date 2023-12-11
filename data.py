@@ -663,35 +663,27 @@ class Data:
         '''
         logging.debug("Checking isolation for %s", local_uuid)
         self.unlock_code = ''
-        if self.region == 'PC':
-            url = f"https://console.{self.pc_domain}/v1/computers/{local_uuid}/isolation"
-            try:
+        if self.region == 'NAM':
+            url = "https://api.amp.cisco.com/v1/computers/{}/isolation".format(local_uuid)
+        elif self.region == 'EU':
+            url = "https://api.eu.amp.cisco.com/v1/computers/{}/isolation".format(local_uuid)
+        elif self.region == 'APJC':
+            url = "https://api.apjc.amp.cisco.com/v1/computers/{}/isolation".format(local_uuid)
+        elif self.region == 'PC':
+            url = f"https://console.{self.pc_domain}/v1/computers/{local_uuid}/isolation"     
+        try:
+            if self.region == "PC":
                 r = requests.get(url, auth=self.auth, verify=self.pc_ca_path)
-                j = json.loads(r.content)
-                self.unlock_code = "Unlock Code: {}".format(j['data']['unlock_code'])
-            except requests.exceptions.ConnectionError:
-                logging.warning("requests.exceptions.ConnectionError")
-                self.unlock_code = ''
-            except KeyError:
-                logging.warning("KeyError")
-                self.unlock_code = ''
-        else:
-            if self.region == 'NAM':
-                url = "https://api.amp.cisco.com/v1/computers/{}/isolation".format(local_uuid)
-            elif self.region == 'EU':
-                url = "https://api.eu.amp.cisco.com/v1/computers/{}/isolation".format(local_uuid)
-            elif self.region == 'APJC':
-                url = "https://api.apjc.amp.cisco.com/v1/computers/{}/isolation".format(local_uuid)
-            try:
+            else:
                 r = requests.get(url, auth=self.auth)
-                j = json.loads(r.content)
-                self.unlock_code = "Unlock Code: {}".format(j['data']['unlock_code'])
-            except requests.exceptions.ConnectionError:
-                logging.warning("requests.exceptions.ConnectionError")
-                self.unlock_code = ''
-            except KeyError:
-                logging.warning("KeyError")
-                self.unlock_code = ''
+            j = json.loads(r.content)
+            self.unlock_code = "Unlock Code: {}".format(j['data']['unlock_code'])
+        except requests.exceptions.ConnectionError:
+            logging.warning("requests.exceptions.ConnectionError")
+            self.unlock_code = ''
+        except KeyError:
+            logging.warning("KeyError")
+            self.unlock_code = ''
 
     def policy_serial_compare(self, policy_uuid, policy_xml_serial):
         '''
@@ -707,7 +699,10 @@ class Data:
             url = f"https://console.{self.pc_domain}/v1/policies/{policy_uuid}"
         logging.debug("requesting %s", url)
         try:
-            r = requests.get(url, auth=self.auth, verify=self.pc_ca_path)
+            if self.region == "PC":
+                r = requests.get(url, auth=self.auth, verify=self.pc_ca_path)
+            else:
+                r = requests.get(url, auth=self.auth)
             j = json.loads(r.content)
             logging.debug(f"SELF.POLICY_SERIAL_RESPONSE: {j}")
             
@@ -792,7 +787,10 @@ class Data:
             url = f"https://console.{self.pc_domain}/v1/version"
         try:
             logging.debug("Requesting {}".format(url))
-            r = requests.get(url, auth=(self.client_id, self.api_key), verify=self.pc_ca_path)
+            if self.region == "PC":
+                r = requests.get(url, auth=(self.client_id, self.api_key), verify=self.pc_ca_path)
+            else:
+                r = requests.get(url, auth=(self.client_id, self.api_key))
             if r.status_code == 200:
                 logging.debug("200 response from %s", url)
                 self.api_cred_valid = True
