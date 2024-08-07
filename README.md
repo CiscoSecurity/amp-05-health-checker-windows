@@ -1,5 +1,14 @@
 # AMP Health Checker for Windows
 
+This tool was created to help sales personnel and customers but is ont an officially supported product. I will fix things on a best effort basis as I have time available.
+If you've found this beneficial and want to say thanks, I like coffee!
+https://www.buymeacoffee.com/mafranks
+
+## SecureX End of Life issue August 2024
+
+There have been some reports of the tool not working after SecureX End of Life. This is due to your API credentials being tied to a disabled SecureX account. To fix this, go to the new Secure Client portal in your region and generate new API credentials. Then, replace the old credentials in your .env file.
+https://secure-client.us.security.cisco.com/administration/api-clients <- US region, change if necessary for EU and APJC.
+
 ## Private Cloud UPDATE December 2023
 
 Made changes to allow for use with Private Cloud.  The .env file should contain a PC_DOMAIN and PC_CA_PATH as well as set "PC" for the region. The root certificate used for your Private Cloud needs to be accessible for the API calls to work properly.
