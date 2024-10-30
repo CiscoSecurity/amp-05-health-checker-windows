@@ -44,7 +44,7 @@ class Data:
         self.path_includes_build = self.does_path_include_build()
         self.path_prelude = ""
         if self.path_includes_build:
-            self.sfc_path = "{}/{}.{}/sfc.exe.log".format(self.root_path, self.version, self.build)
+            self.sfc_path = "{}/{}/sfc.exe.log".format(self.root_path, self.version)
             self.path_prelude = "{}/{}.{}".format(self.root_path, self.version, self.build)
         else:
             self.sfc_path = "{}/{}/sfc.exe.log".format(self.root_path, self.version)
@@ -863,7 +863,7 @@ class Data:
         '''
         Check to see if AMP logging is set to debug. If not set, set temporarily.
         '''
-        if self.policy_dict['log_level'] == "549755813887":
+        if self.policy_dict['log_level'] == "549755813887" or self.policy_dict['log_level'] == "0":
             logging.info("Debug Logging already enabled")
             self.enabled_debug = False
         elif self.policy_dict['log_level'] == '0':
