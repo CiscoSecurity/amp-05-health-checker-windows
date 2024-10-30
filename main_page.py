@@ -1,11 +1,11 @@
 '''
-Main Page of AMP Health Checker.  This is to help customer's identify their own issues without \
+Main Page of Secure Endpoint Health Checker.  This is to help customer's identify their own issues without \
     having to open a TAC case.
 '''
 import logging
-import time
-import PySimpleGUI as sg
 import popups
+import PySimpleGUI as sg
+import time
 import webbrowser
 from data import Data
 
@@ -21,20 +21,19 @@ def main():
         level=logging.INFO,
         filename="amp_health_checker_log.log"
         )
-    logging.warning("AMP Health Checker logging level is %s", \
-        logging.getLevelName(logging.getLogger().level))
-    logging.debug("%s: Starting Health Checker", time.ctime())
+    logging.warning(f"Secure Endpoint Health Checker logging level is {logging.getLevelName(logging.getLogger().level)}")
+    logging.debug(f"{time.ctime()}: Starting Health Checker")
 
     x_count = 0
 
     button_size = (20, 1)
     layout = [
-        [sg.Text("AMP Version: ", tooltip="The current AMP version running on the system."), \
+        [sg.Text("SE Version: ", tooltip="The current Secure Endpoint version running on the system."), \
             sg.Text("Loading...", key='_version')],
-        [sg.Text("CPU Usage: ", tooltip="The current amount of CPU utilized by AMP executables."), \
+        [sg.Text("CPU Usage: ", tooltip="The current amount of CPU utilized by Secure Endpoint executables."), \
             sg.Text("0", key='_cpu', size=(8, 1))],
-        [sg.Text("AMP Uptime: ", size=(10, 1)), sg.Text("", size=(27, 1), key="_uptime", \
-            tooltip="Time since AMP was last stopped")],
+        [sg.Text("SE Uptime: ", size=(10, 1)), sg.Text("", size=(27, 1), key="_uptime", \
+            tooltip="Time since Secure Endpoint was last stopped")],
         [sg.Text("Isolation: ", tooltip="Shows if the connector is Isolated or Not Isolated. \
             Refresh with Refresh button."), sg.Text("", size=(12, 1), key="_isolated"),
          sg.Text("", tooltip="If Isolated, shows the unlock code. Requires valid API Credentials \
@@ -47,7 +46,7 @@ def main():
                 last 5 or connectivity error to API.\nRed if TETRA is not enabled."),
          sg.Button('Check TETRA Version', size=button_size, button_color=('black', '#F0F0F0'), \
             key='_tetra_version_button', tooltip="Checks the API to see if TETRA is up to date. \
-                Requires Valid API Credentials.")], 
+                Requires Valid API Credentials.")],
         [sg.Text("", key="_latest_tetra_version", size=(8, 1))],
         [sg.Text("Policy Serial: ", size=(12, 1)), sg.Text("", size=(7, 1), \
             key="_policy_version", tooltip="Shows the current policy serial number.\nGreen \
@@ -56,7 +55,7 @@ def main():
                         version.  Try syncing policy."),
          sg.Button("Check Policy Version", size=button_size, button_color=('black', '#F0F0F0'), \
             key='_policy_version_button', tooltip="Checks the API to see if the policy is up \
-                to date.")], 
+                to date.")],
         [sg.Text("", key="_latest_policy_version", size=(20, 1))],
         [sg.Text("API Credentials: ", size=(13, 1), tooltip='Shows if the currently stored API \
             Credentials are valid. Can read from text file named "apiCreds.txt" in the local \
@@ -75,11 +74,11 @@ def main():
                     tooltip="Check system for installation of required certificates.")],
         [sg.Button("Connectivity Test", button_color=('black', '#F0F0F0'), size=button_size, \
             key="_connectivity_test", tooltip="Test connection to the required servers for \
-                AMP operations."), sg.Button("Check Engines", button_color=('black', '#F0F0F0'), \
-                    size=button_size, tooltip="Provides a quick view of which AMP engines \
+                SE operations."), sg.Button("Check Engines", button_color=('black', '#F0F0F0'), \
+                    size=button_size, tooltip="Provides a quick view of which SE engines \
                         are enabled on the system.")],
         [sg.Button("Generate Diagnostic", button_color=('black', '#F0F0F0'), size=button_size, \
-            tooltip="Generate AMP diagnostic bundle with AMP Health Checker log. Both files \
+            tooltip="Generate SE diagnostic bundle with SE Health Checker log. Both files \
                 will be on the desktop."), \
                 sg.Button("Manual SFC Analysis", button_color=('black', '#F0F0F0'), \
                     size=button_size, tooltip="Allows importing external sfc.exe.log \
@@ -93,23 +92,23 @@ def main():
                 key='_INFO', size=(9, 1)), sg.Button('WARNING', button_color=('black', '#F0F0F0'), \
                     key="_WARNING", size=(9, 1)), sg.Button('DEBUG', button_color=('black', '#F0F0F0'), \
                         key="_DEBUG", size=(9, 1))],
-        [sg.Text("", size=(9, 1)), 
-            sg.Button("Links", size=(9, 1), button_color=('black', '#F0F0F0')), 
-            sg.Button("Refresh", size=(9, 1), button_color=('black', '#F0F0F0'), 
-                tooltip="Refreshes calculated data, including Isolation Status."), 
+        [sg.Text("", size=(9, 1)),
+            sg.Button("Links", size=(9, 1), button_color=('black', '#F0F0F0')),
+            sg.Button("Refresh", size=(9, 1), button_color=('black', '#F0F0F0'),
+                tooltip="Refreshes calculated data, including Isolation Status."),
             sg.Button("Cancel", button_color=('black', '#F0F0F0'), \
                 tooltip="Exits the program.", size=(9, 1))],
         [sg.Push(), sg.Text("Leave Feedback", enable_events=True, text_color='blue', key='Feedback'), sg.Push()]
     ]
     logging.debug('test')
-    window = sg.Window("AMP Health Check", layout)
+    window = sg.Window("SE Health Check", layout)
 
     is_first = True
 
     while True:
         if is_first:
             event, values = window.Read(timeout=0)
-            logging.debug('Event - %s : Values - %s', event, values)
+            logging.debug(f"Event - {event} : Values - {values}")
             d_instance = Data()
             is_first = False
         else:
@@ -122,7 +121,7 @@ def main():
                 d_instance.update_api_calls()
             x_count = 0
         d_instance.update()
-        logging.debug('Self Scan Count = %s', d_instance.internal_health_check)
+        logging.debug(f'Self Scan Count = {d_instance.internal_health_check}')
         window.find_element('_version').Update(d_instance.version)
         window.find_element('_cpu').Update(d_instance.current_cpu)
         window.find_element('_uptime').Update(d_instance.converted_uptime)
@@ -137,16 +136,14 @@ def main():
             break
         elif event == "_INFO":
             logging.getLogger().setLevel(logging.INFO)
-            logging.info('Log level changed to %s', logging.getLevelName( \
-                logging.getLogger().level))
+            logging.info(f'Log level changed to {logging.getLevelName(logging.getLogger().level)}')
             window.find_element('_INFO').Update(button_color=('white', 'green'))
             window.find_element('_WARNING').Update(button_color=('black', '#F0F0F0'))
             window.find_element('_DEBUG').Update(button_color=('black', '#F0F0F0'))
             window.Refresh()
         elif event == '_WARNING':
             logging.getLogger().setLevel(logging.WARNING)
-            logging.warning('Log level changed to %s', logging.getLevelName( \
-                logging.getLogger().level))
+            logging.warning(f'Log level changed to {logging.getLevelName(logging.getLogger().level)}')
             window.find_element('_INFO').Update(button_color=('black', '#F0F0F0'))
             window.find_element('_WARNING').Update(button_color=('white', 'green'))
             window.find_element('_DEBUG').Update(button_color=('black', '#F0F0F0'))
@@ -154,8 +151,7 @@ def main():
             window.Refresh()
         elif event == '_DEBUG':
             logging.getLogger().setLevel(logging.DEBUG)
-            logging.debug('Log level changed to %s', logging.getLevelName( \
-                logging.getLogger().level))
+            logging.debug(f'Log level changed to {logging.getLevelName(logging.getLogger().level)}')
             window.find_element('_INFO').Update(button_color=('black', '#F0F0F0'))
             window.find_element('_WARNING').Update(button_color=('black', '#F0F0F0'))
             window.find_element('_DEBUG').Update(button_color=('white', 'green'))

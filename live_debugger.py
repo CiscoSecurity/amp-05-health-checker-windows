@@ -52,7 +52,7 @@ class LivePathAndProcess:
         """
 
         reg_1 = r"\w\w\w \d\d \d\d:\d\d:\d\d.*\\\\\?\\.*\\\\\?\\.*\\\\\?\\.*"
-        sfc_logs = list(path.glob("{}/sfc.exe.log".format(version)))
+        sfc_logs = list(path.glob("{version}/sfc.exe.log"))
         if sfc_logs:
             with open(sfc_logs[0]) as file:
                 file_read = file.readlines()[-1000:]

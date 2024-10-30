@@ -48,11 +48,11 @@ def analysis(data):
         window.Element("_top_exclusions").Update("Top 10 Exclusions Hit\n"+data.get_top_exclusions(10))
         window.Refresh()
         if values.get("Save As") != to_save:
-            to_save = "Top 10 Processes\n{}\n\n".format(data.get_top_processes(10))
-            to_save += "Top 10 Paths\n{}\n\n".format(data.get_top_paths(10))
-            to_save += "Top 10 Extensions\n{}\n\n".format(data.get_top_extensions(10))
-            to_save += "Top 10 Folders\n{}".format(data.get_top_folders(10))
-            to_save += "Top 10 Exclusions Hit\n{}".format(data.get_top_exclusions(10))
+            to_save = f"Top 10 Processes\n{data.get_top_processes(10)}\n\n"
+            to_save += f"Top 10 Paths\n{data.get_top_paths(10)}\n\n"
+            to_save += f"Top 10 Extensions\n{data.get_top_extensions(10)}\n\n"
+            to_save += f"Top 10 Folders\n{data.get_top_folders(10)}"
+            to_save += f"Top 10 Exclusions Hit\n{data.get_top_exclusions(10)}"
             with open(values.get("Save As"), "w") as f:
                 f.write(to_save)
 
@@ -107,10 +107,10 @@ def lpap(data):
     This is the live path and process (lpap) pop-up.  Needs to be fed the data.
     """
     layout = [
-        [sg.Text("CPU: {}".format(data.current_cpu), key="_cpu", size=(10, 1))],
+        [sg.Text(f"CPU: {data.current_cpu}", key="_cpu", size=(10, 1))],
         [
             sg.Text("Cloud Lookup Count: ", tooltip="Count of the cloud lookups since \
-                starting the AMP Health Checker."),
+                starting the SE Health Checker."),
             sg.Text("", size=(20, 1), key="_cloud_lookup_count")
         ],
         [
@@ -186,7 +186,7 @@ def lpap(data):
         elif event == "Reset Data":
             data = lpap_data_reset(data)
             window.Element("_data").Update("")
-            window.Element("_cpu").Update("CPU: {}".format(data.current_cpu))
+            window.Element("_cpu").Update(f"CPU: {data.current_cpu}")
             window.find_element('_quarantine_count').Update(data.quarantine_count)
             window.find_element('_spero_count').Update(data.spero_count)
             window.find_element('_ethos_count').Update(data.ethos_count)
@@ -204,7 +204,7 @@ def lpap(data):
                 file.write(data.convert_to_layout())
         if running:
             window.Element("_data").Update(data.convert_to_layout())
-            window.Element("_cpu").Update("CPU: {}".format(data.current_cpu))
+            window.Element("_cpu").Update(f"CPU: {data.current_cpu}")
             window.find_element('_quarantine_count').Update(data.quarantine_count)
             window.find_element('_spero_count').Update(data.spero_count)
             window.find_element('_ethos_count').Update(data.ethos_count)
@@ -244,11 +244,11 @@ def connectivity(data):
     layout.append([sg.Text("Status: RUNNING", key="_conn_test_running", size=(30, 1))]),
     layout.append([sg.Button('Test Again', button_color=('black', '#F0F0F0'), key="_test_again", \
         disabled=True), sg.Button('Cancel', button_color=('black', '#F0F0F0'))])
-    window = sg.Window("AMP Connectivity", layout, location=(1, 1))
+    window = sg.Window("SE Connectivity", layout, location=(1, 1))
     is_first = True
     while True:
         event, values = window.Read(timeout=500)
-        logging.debug('Event - %s : Values - %s', event, values)
+        logging.debug(f'Event - {event} : Values - {values}')
         if is_first:
             data.connectivity_check(window)
             window.Element("_conn_test_running").Update("Status: COMPLETE")
@@ -317,7 +317,7 @@ def topips(data):
 
     while True:
         event, values = window.Read(timeout=1000)
-        logging.debug('Event - %s : Values - %s', event, values)
+        logging.debug(f'Event - {event} : Values - {values}')
         data.update()
         window.Element("_top_ips").Update(data.get_top_ips(data.ip_list))
         window.Refresh()
@@ -350,6 +350,8 @@ def engines_enabled(data):
             else False, disabled=False), sg.Text('Endpoint Isolation')],
         [sg.Checkbox('', default=True if (data.policy_dict['device_control'] == '1') else False, \
             disabled=False), sg.Text('Device Control')],
+        [sg.Checkbox('', default=True if (data.policy_dict['host_firewall'] == 'enabled') else False, \
+            disabled=False), sg.Text('Host Firewall')],
         [sg.Button('OK', button_color=('black', '#F0F0F0'))]
     ]
 
@@ -357,7 +359,7 @@ def engines_enabled(data):
 
     while True:
         event, values = window.Read()
-        logging.debug('Event - %s : Values - %s', event, values)
+        logging.debug(f'Event - {event} : Values - {values}')
         if event in (None, "OK"):
             break
 
@@ -388,7 +390,7 @@ def view_exclusions(data):
 
     while True:
         event, values = window.Read()
-        logging.debug('Event - %s : Values - %s', event, values)
+        logging.debug(f'Event - {event} : Values - {values}')
         if event == "_star_check":
             star_leading_exclusions_popup(data)
         if event in (None, 'OK'):
@@ -401,14 +403,14 @@ def manual_sfc(data):
     """
     column1 = []
     layout = [
-        [sg.Text("Current SFC Log: {}".format(data.sfc_path), size=(150, 1), \
+        [sg.Text(f"Current SFC Log: {data.sfc_path}", size=(150, 1), \
             key="_path_display"),],
         [sg.Button("Change SFC File", button_color=('black', '#F0F0F0')), sg.Button("Analyze", \
             button_color=('black', '#F0F0F0')), sg.Button("Reset SFC File", \
                 button_color=('black', '#F0F0F0'))],
         [
             sg.Text("Cloud Lookup Count: ", tooltip="Count of the cloud lookups since starting \
-                the AMP Health Checker."),
+                the SE Health Checker."),
             sg.Text("", size=(20, 1), key="_cloud_lookup_count")
         ],
         [
@@ -471,7 +473,7 @@ def manual_sfc(data):
 
     while True:
         event, values = window.Read()
-        logging.debug('Event - %s : Values - %s', event, values)
+        logging.debug(f'Event - {event} : Values - {values}')
         if event in (None, 'OK', 'Cancel'):
             break
         elif event == "Change SFC File":
@@ -479,9 +481,9 @@ def manual_sfc(data):
                 title="SFC Log",
                 message="Choose New SFC.log",
                 default_path=data.sfc_path,
-                initial_folder="{}/{}".format(data.root_path, data.version))
+                initial_folder=f"{data.root_path}/{data.version}")
             data.sfc_path = new_sfc_file
-            window.Element("_path_display").Update("Current SFC Log: {}".format(data.sfc_path))
+            window.Element("_path_display").Update(f"Current SFC Log: {data.sfc_path}")
             window.Refresh()
         elif event == "Analyze":
             with open(data.sfc_path) as file:
@@ -504,8 +506,8 @@ def manual_sfc(data):
             window.find_element('_top_folders').Update("Top 10 Folders\n"+data.get_top_folders(10))
             window.find_element('_top_exclusions').Update("Top 10 Exclusions Hit\n"+data.get_top_exclusions(10))
         elif event == "Reset SFC File":
-            data.sfc_path = "{}/{}/sfc.exe.log".format(data.root_path, data.version)
-            window.Element("_path_display").Update("Current SFC Log: {}".format(data.sfc_path))
+            data.sfc_path = f"{data.root_path}/{data.version}/sfc.exe.log"
+            window.Element("_path_display").Update(f"Current SFC Log: {data.sfc_path}")
             window.Refresh()
     window.close()
 
@@ -527,7 +529,7 @@ def diag_failed_popup():
 
     while True:
         event, values = window.Read()
-        logging.debug('Event - %s : Values - %s', event, values)
+        logging.debug(f'Event - {event} : Values - {values}')
         if event in (None, 'OK', 'Cancel'):
             break
     window.close()
@@ -535,7 +537,7 @@ def diag_failed_popup():
 
 def recommend_exclusions(data):
     '''
-    Show Exclusions options    
+    Show Exclusions options
     '''
     recommendations_dict = data.recommend_exclusions()
     recommendations_string = ""
@@ -546,7 +548,7 @@ def recommend_exclusions(data):
         [sg.Text("These recommendations are based on processes seen on the endpoint.")],
         [sg.Text("Cisco Maintained Exclusions List - Executable(s) identified")],
         [sg.Multiline(f"{recommendations_string}", size=(100, 12), key="_recommendations")],
-        [sg.Button("Exclusions NOT Recommended", button_color=('black', '#F0F0F0'), size=(25, 1), 
+        [sg.Button("Exclusions NOT Recommended", button_color=('black', '#F0F0F0'), size=(25, 1),
             tooltip="Show list of exclusions that may lead to coverage gaps.")]
     ]
 
@@ -554,12 +556,12 @@ def recommend_exclusions(data):
 
     while True:
         event, values = window.Read()
-        logging.debug('Event - %s : Values - %s', event, values)
+        logging.debug(f'Event - {event} : Values - {values}')
         if event in (None, 'OK', 'Cancel'):
             break
         if event == "Exclusions NOT Recommended":
             bad_exclusions_popup()
-            
+
     window.close()
     return
 
@@ -584,7 +586,7 @@ def bad_exclusions_popup():
 
     while True:
         event, values = window.Read()
-        logging.debug('Event - %s : Values - %s', event, values)
+        logging.debug(f'Event - {event} : Values - {values}')
         if event in (None, 'OK', 'Cancel'):
             break
         if event == '-LINK-':
@@ -618,7 +620,7 @@ def star_leading_exclusions_popup(data):
 
     while True:
         event, values = window.Read()
-        logging.debug('Event - %s : Values - %s', event, values)
+        logging.debug(f'Event - {event} : Values - {values}')
         if event in (None, 'OK', 'Cancel'):
             break
         if event == '-LINK-':
@@ -632,7 +634,7 @@ def links_popup():
     Show useful links
     '''
     layout = [
-        [sg.Text("Secure Endpoint Documentation", 
+        [sg.Text("Secure Endpoint Documentation",
             enable_events=True, text_color='blue', key='_SE_Docs')],
         [sg.Text("API Documentation",
             enable_events=True, text_color='blue', key='_API_Docs')],
@@ -644,6 +646,8 @@ def links_popup():
             enable_events=True, text_color='blue', key='_Servers')],
         [sg.Text("Troubleshoot List of Root Certificates Required",
             enable_events=True, text_color='blue', key='_Root_Certs')],
+        [sg.Text("Buy Me a Coffee",
+            enable_events=True, text_color='blue', key='_Coffee')],
         [sg.OK()],
         ]
 
@@ -651,11 +655,11 @@ def links_popup():
 
     while True:
         event, values = window.Read()
-        logging.debug('Event - %s : Values - %s', event, values)
+        logging.debug(f'Event - {event} : Values - {values}')
         if event in (None, 'OK', 'Cancel'):
             break
         if event == '_SE_Docs':
-            webbrowser.open('https://console.amp.cisco.com/docs')
+            webbrowser.open('https://console.amp.cisco.com/help/en/Content/Secure_Endpoint_User_Guide/Documentation.html')
             window.find_element('_SE_Docs').Update(text_color='purple')
         if event == "_API_Docs":
             webbrowser.open('https://developer.cisco.com/docs/secure-endpoint/')
@@ -672,12 +676,15 @@ def links_popup():
         if event == "_Root_Certs":
             webbrowser.open('https://www.cisco.com/c/en/us/support/docs/security/amp-endpoints/216943-list-of-root-certificates-required-for-a.html')
             window.find_element('_Root_Certs').Update(text_color='purple')
+        if event == "_Coffee":
+            webbrowser.open('buymeacoffee.com/mafranks')
+            window.find_element('_Coffee').Update(text_color='purple')
     window.close()
     return
 
 def check_certs():
     '''
-    Check for required certificate installation    
+    Check for required certificate installation
     '''
     # Get the list of installed certificates
     output = subprocess.check_output("powershell.exe Get-ChildItem -Path Cert:LocalMachine\\Root", shell=True, universal_newlines=True)
@@ -700,10 +707,10 @@ def check_certs():
 
     while True:
         event, values = window.Read()
-        logging.debug('Event - %s : Values - %s', event, values)
+        logging.debug(f'Event - {event} : Values - {values}')
         if event in (None, 'OK', 'Cancel'):
             break
-            
+
     window.close()
     return
 

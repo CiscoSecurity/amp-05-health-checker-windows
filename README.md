@@ -1,33 +1,15 @@
-# AMP Health Checker for Windows
+# Secure Endpoint Health Checker for Windows
 
-This tool was created to help sales personnel and customers but is ont an officially supported product. I will fix things on a best effort basis as I have time available.
+This tool was created to help sales personnel and customers but is ont an officially supported product.
+I will fix things on a best effort basis as I have time available.
 
-If you've found this beneficial and want to say thanks, I like coffee!
+If you've found this beneficial and want continual updates, please say thanks with a cup of coffee!
 
 https://www.buymeacoffee.com/mafranks
 
-## SecureX End of Life issue August 2024
-
-There have been some reports of the tool not working after SecureX End of Life. This is due to your API credentials being tied to a disabled SecureX account. 
-
-To fix this, go to the new Secure Client portal in your region and generate new API credentials. Then, replace the old credentials in your .env file.
-
-
-https://secure-client.us.security.cisco.com/administration/api-clients <- US region, change if necessary for EU and APJC.
-
-## Private Cloud UPDATE December 2023
-
-Made changes to allow for use with Private Cloud.  The .env file should contain a PC_DOMAIN and PC_CA_PATH as well as set "PC" for the region. The root certificate used for your Private Cloud needs to be accessible for the API calls to work properly.
-
-## AUTHENTICATION UPDATE December 2022
-
-Due to changes in the accessibility of the policy.xml file in the 8.1.3 release, authentication for the Health Checker tool had to be updated to include SecureX API authenticaiton. The SecureX API allows access to the policy.xml file which is required for proper operation of the tool. See the API Credentials section below for more information. 
-
-The Device Control engine was also added in the Engines Check section.
-
 ## Introduction
 
-You've successfully deployed AMP for Endpoints and it is now running on your system. Great! But, what is it actually doing? Most of the time it doesn't look like it is doing anything, but AMP is actually performing file checks constantly on the endpoint. The goal of this tool is to provide additional insight into AMP operations and allow customers to perform troubleshooting on their own. This should empower customers to self-resolve performance issues that would otherwise involve TAC engagement, and also provide visibility into AMP’s various activities.
+You've successfully deployed Secure Endpoints and it is now running on your system. Great! But, what is it actually doing? Most of the time it doesn't look like it is doing anything, but AMP is actually performing file checks constantly on the endpoint. The goal of this tool is to provide additional insight into AMP operations and allow customers to perform troubleshooting on their own. This should empower customers to self-resolve performance issues that would otherwise involve TAC engagement, and also provide visibility into AMP’s various activities.
 
 This tool was developed by Matthew Franks (Advanced Threat Escalations) and Brandon Macer (Advanced Threat Escalations). With enough support and adoption, the long-term hope is to integrate this tool’s functionality into the Secure Client GUI.
 
@@ -45,23 +27,23 @@ Current executable has been included in the files above for ease of use.
 
 ## Usage
 
-To start the tool, ensure that you have an instance of AMP running and run the main_page.py script. If you have an executable from PyInstaller, right click the executable and Run as Administrator. You'll be presented with the GUI interface.
+To start the tool, ensure that you have an instance of Secure Endpoints running and run the main_page.py script. If you have an executable from PyInstaller, right click the executable and Run as Administrator. You'll be presented with the GUI interface. You may have to create an account with PySimpleGUI since they close-sourced their code this year. It should still be free though.
 
 ## Main Page GUI
 
 ![](/images/Main_Page.png)
 
-### AMP Version
+### SE Version
 
-This displays the AMP version that is installed on your system.
+This displays the Secure Endpoints version that is installed on your system.
 
 ### CPU Usage
 
-This displays the CPU resources being consumed by the AMP process.
+This displays the CPU resources being consumed by the SE process.
 
-### AMP Uptime
+### SE Uptime
 
-This displays the length of time since the AMP process was started/restarted.
+This displays the length of time since the SE process was started/restarted.
 
 ### Isolation
 
@@ -75,11 +57,11 @@ If isolated, the Isolation Code to unlock the connector will be displayed.
 
 NOTE: Valid Secure Endpoint API Credentials are required for this functionality to work.
 
-For additional information on Endpoint Isolation, please refer to the [Secure Endpoint User Guide](https://console.amp.cisco.com/help/en/wwhelp/wwhimpl/js/html/wwhelp.htm).
+For additional information on Endpoint Isolation, please refer to the [Secure Endpoint User Guide](https://console.amp.cisco.com/help/en/Content/Secure_Endpoint_User_Guide/Documentation.html).
 
 ### TETRA Version
 
-This displays the current TETRA definition version downloaded by the AMP connector. Click the Check TETRA Version button to check that against the version available in the cloud. If you have the latest version, it will be highlighted Green. If you have a version within the last five updates, it will be highlighted Yellow. If your version is more than five updates behind, it will be highlighted Red. Also, the current version will be displayed after the check.
+This displays the current TETRA definition version downloaded by the SE connector. Click the Check TETRA Version button to check that against the version available in the cloud. If you have the latest version, it will be highlighted Green. If you have a version within the last five updates, it will be highlighted Yellow. If your version is more than five updates behind, it will be highlighted Red. Also, the current version will be displayed after the check.
 
 ![](/images/TETRA_Version.png)
 
@@ -98,16 +80,16 @@ This display will show if you have provided valid Secure Endpoint API Credential
 The .env file must have the following entries to pull the policy.xml which is no longer accessible locally as of the 8.1.3 release.
 
 For Public Cloud:
-    Enter a CLIENT_ID and API_KEY from the Secure Endpoint console.
-    Enter a REGION (NAM, EU, or APJC).
-    Enter a SX_CLIENT_ID and SX_API_KEY from the SecureX/XDR console.
-    Enter an ORG_NAME for the SecureX/XDR Organization.
+Enter a CLIENT_ID and API_KEY from the Secure Endpoint console.
+Enter a REGION (NAM, EU, or APJC).
+Enter a SX_CLIENT_ID and SX_API_KEY from the Secure Client/XDR console.
+Enter an ORG_NAME for the Secure Client/XDR Organization.
 
 For Private Cloud:
-    Enter a CLIENT_ID and API_KEY from the Private Cloud console.
-    Enter "PC" for the region.
-    Enter your PC_DOMAIN such as test.local.
-    Enter the path to your Private Cloud root certificate, such as "C:/Users/xxxxx/Desktop/rootCA.crt"
+Enter a CLIENT_ID and API_KEY from the Private Cloud console.
+Enter "PC" for the region.
+Enter your PC_DOMAIN such as test.local.
+Enter the path to your Private Cloud root certificate, such as "C:/Users/xxxxx/Desktop/rootCA.crt"
 
 > CLIENT_ID = "01234567890abcdef012"
 
@@ -127,7 +109,7 @@ For Private Cloud:
 
 The CLIENT_ID and API_KEY will be generated in the [Secure Endpoints console](https://console.amp.cisco.com/api_credentials).
 
-The SX_CLIENT_ID and SX_API_KEY will be generated in the [SecureX console](https://securex.us.security.cisco.com/settings/apiClients).
+The SX_CLIENT_ID and SX_API_KEY will be generated in the [Secure Client console](https://securex.us.security.cisco.com/settings/apiClients).
 
 The ORG_NAME is your SecureX Organization name. Keep in mind you may have more than one organization so choose the appropriate one that matches your Secure Endpoint deployment. The SecureX Organization name is displayed in the top right corner of the SecureX console.
 
@@ -135,7 +117,7 @@ You can use the .env file as an example and just fill in your information.
 
 ![](images/Org_Name.png)
 
-The REGION is either NAM, EU, or APJC dpending on the region your deployment is located.
+The REGION is either NAM, EU, or APJC depending on the region your deployment is located.
 
 ### Live Debugging
 
@@ -147,13 +129,13 @@ To start, press the Start/Resume button. To pause, press Pause. To resume again,
 
 ### Live Top Processes
 
-Live top processes gives a quick view into the top processes being scanned by the AMP Connector. The controls are similar to the Live Debugging controls.
+Live top processes gives a quick view into the top processes being scanned by the SE Connector. The controls are similar to the Live Debugging controls.
 
 ![](images/Live_Top_Processes.png)
 
 ### Connectivity Test
 
-The Connectivity Test button will allow you to run a connectivity test to the AMP servers. They will all show as yellow while the test is running. If they turn green, the connection was successful. If they turn red, the connection was unsuccessful.
+The Connectivity Test button will allow you to run a connectivity test to the SE servers. They will all show as yellow while the test is running. If they turn green, the connection was successful. If they turn red, the connection was unsuccessful.
 
 ![](images/Connectivity.png)
 
@@ -167,11 +149,11 @@ The View Exclusions button allows you to view the path and process exclusions fr
 
 ### Generate Diagnostic
 
-The Generate Diagnostic button allows you to generate an AMP Diagnostic bundle. This will place the zipped file on your desktop. It will also create an amp_health_checker_log.log file in the directory with the Health Checker scripts or executable. If you have an issue with the tool itself, please click the DEBUG button on the main page, recreate the issue, and provide the AMP diagnostic and the Health Checker log for analysis.
+The Generate Diagnostic button allows you to generate an SE Diagnostic bundle. This will place the zipped file on your desktop. It will also create an amp_health_checker_log.log file in the directory with the Health Checker scripts or executable. If you have an issue with the tool itself, please click the DEBUG button on the main page, recreate the issue, and provide the SE diagnostic and the Health Checker log for analysis.
 
 ### Run Analysis
 
-The Run Analysis button will give you a quick snapshot of the system based on the AMP sfc.exe.log files. The top 10 processes, files, extensions and folders scanned will be displayed.
+The Run Analysis button will give you a quick snapshot of the system based on the SE sfc.exe.log files. The top 10 processes, files, extensions and folders scanned will be displayed.
 
 ![](images/Run_Analysis.png)
 
@@ -179,7 +161,7 @@ NOTE: The logs need to be in debug to show the appropriate data.
 
 ### Top IPs
 
-The Top IPs will show a list of the top ten IP addresses reached out to from files scanned by the AMP Connector.
+The Top IPs will show a list of the top ten IP addresses reached out to from files scanned by the SE Connector.
 
 ### Check Engines
 
@@ -195,11 +177,11 @@ Manual SFC Analysis allows you to run analysis on a file from another machine or
 
 ### Recommend Exclusions
 
-Click to recommend Cisco Maintained Exclusions lists based on processes seen on the endpoint. The lists are currently provided by a hard-coded json. An API call for Cisco Maintained Exclusion details is on the roadmap so this will be used once available.
+Click to recommend Cisco Maintained Exclusions lists based on processes seen on the endpoint. The lists are currently provided by a hard-coded json. Once an API call for Cisco Maintained Exclusion details is available, this will be updated.
 
 ### Log Level
 
-The log level buttons allow you to select the logging level for the AMP Health Checker tool. It does not change the log level on the AMP Connector! If you run into an issue with the Health Checker tool, please put the tool in DEBUG, reproduce the issue, and provide the AMP diagnostic file and Health Checker logs for analysis.
+The log level buttons allow you to select the logging level for the SE Health Checker tool. It does not change the log level on the SE Connector! If you run into an issue with the Health Checker tool, please put the tool in DEBUG, reproduce the issue, and provide the SE diagnostic file and Health Checker logs for analysis.
 
 ### Region
 
@@ -212,3 +194,31 @@ Refresh will refresh the data on the main page. This may be necessary if the Iso
 ### Cancel
 
 Cancel will exit the program.
+
+## UPDATE October 2024
+
+Fixed a versioning issue.
+Fixed a spacing issue in the exclusions list.
+Fixed Top IP processing.
+Fixed Top Exclusions formatting.
+Added Host Firewall engine.
+Did some code cleanup.
+Removed references to SecureX where possible.
+
+## SecureX End of Life issue August 2024
+
+There have been some reports of the tool not working after SecureX End of Life. This is due to your API credentials being tied to a disabled SecureX account.
+
+To fix this, go to the new Secure Client portal in your region and generate new API credentials. Then, replace the old credentials in your .env file.
+
+https://secure-client.us.security.cisco.com/administration/api-clients <- US region, change if necessary for EU and APJC.
+
+## Private Cloud UPDATE December 2023
+
+Made changes to allow for use with Private Cloud. The .env file should contain a PC_DOMAIN and PC_CA_PATH as well as set "PC" for the region. The root certificate used for your Private Cloud needs to be accessible for the API calls to work properly.
+
+## AUTHENTICATION UPDATE December 2022
+
+Due to changes in the accessibility of the policy.xml file in the 8.1.3 release, authentication for the Health Checker tool had to be updated to include SecureX API authenticaiton. The SecureX API allows access to the policy.xml file which is required for proper operation of the tool. See the API Credentials section below for more information.
+
+The Device Control engine was also added in the Engines Check section.

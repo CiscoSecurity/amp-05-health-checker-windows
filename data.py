@@ -1,30 +1,30 @@
 '''
 The data module does the majority of the grunt work for the program.
 '''
-import os
-import re
-from string import Template
-from collections import Counter
-import time
-import xml.etree.ElementTree as ET
-import winreg
 import json
-import platform
 import logging
-import ssl
-import socket
-import sys
-import subprocess
-import struct
-import shutil
+import os
+import platform
 import psutil
-import requests
 import PySimpleGUI as sg
-from dotenv import load_dotenv
-from nam_urls import NAMADDRESSLIST
-from eu_urls import EUADDRESSLIST
+import re
+import requests
+import shutil
+import socket
+import ssl
+import struct
+import subprocess
+import sys
+import time
+import winreg
+import xml.etree.ElementTree as ET
 from apjc_urls import APJCADDRESSLIST
+from collections import Counter
+from dotenv import load_dotenv
+from eu_urls import EUADDRESSLIST
+from nam_urls import NAMADDRESSLIST
 from pc_urls import PCADDRESSLIST
+from string import Template
 from temp_maintained_exclusions import TEMP_MAINTAINED_EXCLUSIONS
 apiCreds = False
 
@@ -43,12 +43,12 @@ class Data:
         self.build = self.get_build()
         self.path_includes_build = self.does_path_include_build()
         self.path_prelude = ""
-        if self.path_includes_build:
-            self.sfc_path = "{}/{}/sfc.exe.log".format(self.root_path, self.version)
-            self.path_prelude = "{}/{}.{}".format(self.root_path, self.version, self.build)
+        if self.path_includes_build is False:
+            self.sfc_path = f"{self.root_path}/{self.version}.{self.build}/sfc.exe.log"
+            self.path_prelude = f"{self.root_path}/{self.version}/{self.build}"
         else:
-            self.sfc_path = "{}/{}/sfc.exe.log".format(self.root_path, self.version)
-            self.path_prelude = "{}/{}".format(self.root_path, self.version)
+            self.sfc_path = f"{self.root_path}/{self.version}/sfc.exe.log"
+            self.path_prelude = f"{self.root_path}/{self.version}"
         self.regex_1 = r"\w\w\w \d\d \d\d:\d\d:\d\d.*\\\\\?\\.*\\\\\?\\.*\\\\\?\\.*"
         self.regex_2 = r"(\w\w\w \d\d \d\d:\d\d:\d\d).*\\\\\?\\(.*)\(\\\\\?\\.*\\\\\?\\(.*)"
         self.data = []
@@ -87,7 +87,7 @@ class Data:
         self.diag_failed = False
         self.ip_list = []
         self.excluded_list = []
-        
+
         if self.auth:
             logging.debug("Found self.auth")
             self.policy_serial_compare(self.policy_dict['policy_uuid'], \
@@ -140,12 +140,12 @@ class Data:
 
     def __repr__(self):
         to_return = ""
-        to_return += "Cloud Lookup Count: {}\n".format(self.cloud_lookup_count)
-        to_return += "TETRA Scan Count: {}\n".format(self.tetra_scan_count)
-        to_return += "Excluded Count: {}\n".format(self.excluded_count)
-        to_return += "Cache Hit Count: {}\n".format(self.cache_hit_count)
-        to_return += "Malicious Hit Count: {}\n".format(self.malicious_hit_count)
-        to_return += "Inner File Count: {}\n".format(self.inner_file_count)
+        to_return += f"Cloud Lookup Count: {self.cloud_lookup_count}\n"
+        to_return += f"TETRA Scan Count: {self.tetra_scan_count}\n"
+        to_return += f"Excluded Count: {self.excluded_count}\n"
+        to_return += f"Cache Hit Count: {self.cache_hit_count}\n"
+        to_return += f"Malicious Hit Count: {self.malicious_hit_count}\n"
+        to_return += f"Inner File Count: {self.inner_file_count}\n"
 
         return to_return
 
@@ -162,7 +162,7 @@ class Data:
         for i in range(len(common)-2):
             if common[i][0] not in common[i+1][0]:
                 filtered_list.append(common[i])
-        return "\n".join(["{:<5} | {}".format(i[1], i[0]) for i in filtered_list[:n_count]])
+        return "\n".join([f"{i[1]:<5} | {i[0]}" for i in filtered_list[:n_count]])
 
     def get_cpu_usage(self):
         '''
@@ -174,10 +174,10 @@ class Data:
         for proc in psutil.process_iter():
             try:
                 if proc.name() == "sfc.exe":
-                    logging.debug("Found proc: %s", proc)
+                    logging.debug(f"Found proc: {proc}")
                     try:
                         cpu += proc.cpu_percent()
-                        logging.debug("sfc cpu: %s", cpu)
+                        logging.debug(f"sfc cpu: {cpu}")
                         start_time = psutil.Process(proc.pid).create_time()
                         uptime = int(time.time() - start_time)
                         self.convert_uptime(uptime)
@@ -188,7 +188,7 @@ class Data:
                 logging.warning("Error: psutil.NoSuchProcess")
         final_cpu = cpu / processors
         return float(final_cpu)
-    
+
     def get_build(self):
         '''
         Determine build version of the AMP connector installed
@@ -231,7 +231,7 @@ class Data:
         max_version = [0, 0, 0, 00000]
         reg_version = r'\d{1,2}\.\d{1,2}\.\d{1,2}.\d{5}'
         for entry in directory:
-            logging.debug("entry: %s", entry)
+            logging.debug(f"entry: {entry}")
             reg = re.findall(reg_version, entry)
             if reg:
                 logging.debug("found match")
@@ -249,9 +249,9 @@ class Data:
         reg = re.findall(self.regex_2, line)
         if reg:
             time, path, process = reg[0]
-            logging.debug("time: %s", time)
-            logging.debug("path: %s", path)
-            logging.debug("process: %s", process)
+            logging.debug(f"time: {time}")
+            logging.debug(f"path: {path}")
+            logging.debug(f"process: {process}")
         return {
             "time": time,
             "path": path,
@@ -296,7 +296,7 @@ class Data:
             file_read = file_1.readlines()
         if self.last_log_line in file_read:
             start_index = file_read.index(self.last_log_line)
-            logging.debug("start_index: %s", start_index)
+            logging.debug(f"start_index: {start_index}")
         else:
             start_index = -1
         self.last_log_line = file_read[-2]
@@ -315,57 +315,57 @@ class Data:
                 reg = re.findall(self.regex_1, line)
                 if reg:
                     converted = self.convert_line(reg[0])
-                    logging.debug("converted: %s", converted)
+                    logging.debug(f"converted: {converted}")
                     self.data.append(converted)
                     to_add = self.get_list_of_folders(self.convert_line(reg[0])["path"])[:-1]
-                    logging.debug("Extending self.every_folder with: %s", to_add)
+                    logging.debug(f"Extending self.every_folder with: {to_add}")
                     self.every_folder.extend(to_add)
                 if "EVENT_INNER_FILE_SCAN start" in line:
                     self.inner_file_count += 1
             elif "GetSperoHash SPERO fingerprint: status: 1" in line:
                 self.spero_count += 1
-                logging.debug("found SPERO: %s", self.spero_count)
+                logging.debug(f"found SPERO: {self.spero_count}")
             elif "imn::CEventManager::PublishEvent: publishing type=553648143" in line:
                 self.quarantine_count += 1
-                logging.debug("found Quarantine: %s", self.quarantine_count)
+                logging.debug(f"found Quarantine: {self.quarantine_count}")
             elif "Query::LookupExecute: attempting lookup with cloud" in line:
                 self.cloud_lookup_count += 1
-                logging.debug("found lookup cloud: true: %s", self.cloud_lookup_count)
+                logging.debug(f"found lookup cloud: true: {self.cloud_lookup_count}")
             elif "lock acquired" in line:
                 self.tetra_r = r"TetraEngineInterface::ScanFile\[\d{3,5}\] lock acquired"
                 logging.debug("found lock acquired")
                 reg = re.findall(self.tetra_r, line)
                 if reg:
                     self.tetra_scan_count += 1
-                    logging.debug("found Tetra ScanFile lock: %s", self.tetra_scan_count)
+                    logging.debug(f"found Tetra ScanFile lock: {self.tetra_scan_count}")
             elif "ExclusionCheck: responding: is excluded" in line:
                 self.excluded_count += 1
-                logging.debug("found is excluded: %s", self.excluded_count)
+                logging.debug(f"found is excluded: {self.excluded_count}")
             elif "ExclusionCheck:" in line:
                 reg = re.findall(r'ExclusionCheck: \\\\\?\\.* is excluded', line)
                 if reg:
                     self.excluded_list.append(line.split(" ")[8])
                     self.excluded_count += 1
             elif "Exclusion::IsExcluded: result: 1 for" in line:
-                self.excluded_list.append(line.split(" ")[11].split(",")[0])
+                self.excluded_list.append(line.split("result: 1 for ")[1].split(",")[0])
                 self.excluded_count += 1
             elif "Exclusion::IsExcluded: result: 1 from cache" in line:
-                self.excluded_list.append(line.split(" ")[13])
+                self.excluded_list.append(line.split("result: 1 from cache for ")[1])
                 self.excluded_count += 1
             elif "Cache::Get: age" in line:
                 self.cache_hit_count += 1
-                logging.debug("found Cache::Get: age %s", self.cache_hit_count)
+                logging.debug(f"found Cache::Get: age {self.cache_hit_count}")
             elif "calculating ETHOS hash" in line:
                 self.ethos_count += 1
-                logging.debug("found ETHOS hash %s", self.ethos_count)
-            elif "NFMMemCache::Get rip" in line:
-                reg = re.findall(r'NFMMemCache::Get rip: ([\d]*)', line)
+                logging.debug(f"found ETHOS hash {self.ethos_count}")
+            elif "NFMMemCache::Get: rip" in line:
+                reg = re.findall(r'NFMMemCache::Get: rip: ([\d]*)', line)
                 if reg:
                     converted = socket.inet_ntoa(struct.pack('!L', int(reg[0])))
                     self.ip_list.append(".".join(reversed(converted.split("."))))
             if "disp 3" in line:
                 self.malicious_hit_count += 1
-                logging.debug("found disp 3 %s", self.malicious_hit_count)
+                logging.debug(f"found disp 3 {self.malicious_hit_count}")
 
     def __len__(self):
         return len(self.data)
@@ -379,7 +379,7 @@ class Data:
         for i in self.excluded_list:
             cnt[i] += 1
         c_count = Counter(cnt.most_common(n_count))
-        return "\n".join(["{:<5} | {}".format(i[1], i[0]) for i in c_count])
+        return "\n".join([f"{i[1]:<5} | {i[0].strip()}" for i in c_count])
 
     def get_processes(self):
         '''
@@ -412,7 +412,7 @@ class Data:
         '''
         logging.debug("Starting get_top_processes")
         c_count = Counter(self.get_processes()).most_common(n_count)
-        return "\n".join(["{:<5} | {}".format(i[1], i[0]) for i in c_count])
+        return "\n".join([f"{i[1]:<5} | {i[0].split(",")[0]}" for i in c_count])
 
     def get_top_extensions(self, n_count=None):
         '''
@@ -430,7 +430,7 @@ class Data:
             else:
                 extensions.append("[no period in file path]")
         c_count = Counter(extensions).most_common(n_count)
-        return "\n".join(["{:<5} | {}".format(i[1], i[0]) for i in c_count])
+        return "\n".join([f"{i[1]:<5} | {i[0]}" for i in c_count])
 
     def get_top_paths(self, n_count=None):
         '''
@@ -438,7 +438,7 @@ class Data:
         '''
         logging.debug("Starting get_top_paths")
         c_count = Counter(self.get_paths()).most_common(n_count)
-        return "\n".join(["{:<5} | {}".format(i[1], i[0]) for i in c_count])
+        return "\n".join([f"{i[1]:<5} | {i[0]}" for i in c_count])
 
     def dig_thru_xml(self, *args, root, tag="{http://www.w3.org/2000/09/xmldsig#}", \
         is_list=False):
@@ -447,23 +447,23 @@ class Data:
         '''
         logging.debug("Starting dig_thru_xml")
         for arg in args[:-1]:
-            query = "{}{}".format(tag, arg)
-            logging.debug("query: %s", query)
+            query = f"{tag}{arg}"
+            logging.debug(f"query: {query}")
             root = root.findall(query)
             if root:
                 root = root[0]
-                logging.debug("root: %s", root)
+                logging.debug(f"root: {root}")
             else:
                 logging.debug("no root found")
                 return None
-        root = root.findall("{}{}".format(tag, args[-1]))
-        logging.debug("searching root for %s", root)
+        root = root.findall(f"{tag}{args[-1]}")
+        logging.debug(f"searching root for {root}")
         if root:
             if is_list:
-                logging.debug("returning %s", root)
+                logging.debug(f"returning {root}")
                 return [i.text for i in root]
             else:
-                logging.debug("returning %s", root[0].text)
+                logging.debug(f"returning {root[0].text}")
                 return root[0].text
         return None
 
@@ -472,11 +472,11 @@ class Data:
         Determine the root path of the XML.
         '''
         logging.debug("Starting get_root")
-        
+
         with open(path) as f:
             tree = ET.parse(f)
             root = tree.getroot()
-            logging.debug("root: %s", root)
+            logging.debug(f"root: {root}")
         return root
 
     def parse_xml(self, path=r"C:/Program Files/Cisco/AMP/policy.xml"):
@@ -566,7 +566,8 @@ class Data:
             "proxy_port": ("Object", "config", "proxy", "port"),
             "proxy_type": ("Object", "config", "proxy", "type"),
             "proxy_username": ("Object", "config", "proxy", "username"),
-            "device_control": ("Object", "config", "agent", "dc", "enabled")
+            "device_control": ("Object", "config", "agent", "dc", "enabled"),
+            "host_firewall": ("Object", "config", "agent", "firewall", "mode")
         }
 
         policy_dict = {}
@@ -614,13 +615,13 @@ class Data:
 
         policy_dict["path_exclusions"] = self.dig_thru_xml("Object", "config", "exclusions", \
             "info", "item", root=root, is_list=True)
-        logging.debug("path exclusions: %s", policy_dict['path_exclusions'])
+        logging.debug(f"path exclusions: {policy_dict['path_exclusions']}")
         policy_dict["process_exclusions"] = self.dig_thru_xml("Object", "config", "exclusions", \
             "process", "item", root=root, is_list=True)
-        logging.debug("process exclusions: %s", policy_dict['process_exclusions'])
+        logging.debug(f"process exclusions: {policy_dict['process_exclusions']}")
 
         for i in policy_key.items():
-            logging.debug("digging thru xml for %s", i[1])
+            logging.debug(f"digging thru xml for {i[1]}")
             policy_dict[i[0]] = self.dig_thru_xml(*i[1], root=root)
         self.policy_dict = policy_dict
 
@@ -633,20 +634,20 @@ class Data:
         self.unlock_code = ''
         try:
             aReg = winreg.ConnectRegistry(None, winreg.HKEY_LOCAL_MACHINE)
-            logging.debug("aReg: %s", aReg)
+            logging.debug(f"aReg: {aReg}")
             aKey = winreg.OpenKey(aReg, r"SOFTWARE\\Immunet Protect", 0, \
                 (winreg.KEY_WOW64_64KEY+winreg.KEY_READ))
-            logging.debug("aKey: %s", aKey)
+            logging.debug(f"aKey: {aKey}")
             i = 0
             while 1:
                 name, value, typ = winreg.EnumValue(aKey, i)
-                logging.debug("name: %s", name)
-                logging.debug("value: %s", value)
-                logging.debug("type: %s", typ)
+                logging.debug(f"name: {name}")
+                logging.debug(f"value: {value}")
+                logging.debug(f"type: {typ}")
                 if name == 'unlock_code':
                     logging.debug("name == unlock_code")
                     unlock_code = value
-                    logging.debug("unlock_code: %s", unlock_code)
+                    logging.debug(f"unlock_code: {unlock_code}")
                     self.isolated = 'Isolated'
                     break
                 i += 1
@@ -661,23 +662,23 @@ class Data:
         '''
         Pull the isolation code if the endpoint is isolated.
         '''
-        logging.debug("Checking isolation for %s", local_uuid)
+        logging.debug(f"Checking isolation for {local_uuid}")
         self.unlock_code = ''
         if self.region == 'NAM':
-            url = "https://api.amp.cisco.com/v1/computers/{}/isolation".format(local_uuid)
+            url = f"https://api.amp.cisco.com/v1/computers/{local_uuid}/isolation"
         elif self.region == 'EU':
-            url = "https://api.eu.amp.cisco.com/v1/computers/{}/isolation".format(local_uuid)
+            url = f"https://api.eu.amp.cisco.com/v1/computers/{local_uuid}/isolation"
         elif self.region == 'APJC':
-            url = "https://api.apjc.amp.cisco.com/v1/computers/{}/isolation".format(local_uuid)
+            url = f"https://api.apjc.amp.cisco.com/v1/computers/{local_uuid}/isolation"
         elif self.region == 'PC':
-            url = f"https://console.{self.pc_domain}/v1/computers/{local_uuid}/isolation"     
+            url = f"https://console.{self.pc_domain}/v1/computers/{local_uuid}/isolation"
         try:
             if self.region == "PC":
                 r = requests.get(url, auth=self.auth, verify=self.pc_ca_path)
             else:
                 r = requests.get(url, auth=self.auth)
             j = json.loads(r.content)
-            self.unlock_code = "Unlock Code: {}".format(j['data']['unlock_code'])
+            self.unlock_code = f"Unlock Code: {j['data']['unlock_code']}"
         except requests.exceptions.ConnectionError:
             logging.warning("requests.exceptions.ConnectionError")
             self.unlock_code = ''
@@ -690,14 +691,14 @@ class Data:
         Check to see if the policy is up to date.
         '''
         if self.region == 'NAM':
-            url = "http://api.amp.cisco.com/v1/policies/{}".format(policy_uuid)
+            url = f"http://api.amp.cisco.com/v1/policies/{policy_uuid}"
         elif self.region == 'EU':
-            url = "http://api.eu.amp.cisco.com/v1/policies/{}".format(policy_uuid)
+            url = f"http://api.eu.amp.cisco.com/v1/policies/{policy_uuid}"
         elif self.region == 'APJC':
-            url = "http://api.apjc.amp.cisco.com/v1/policies/{}".format(policy_uuid)
+            url = f"http://api.apjc.amp.cisco.com/v1/policies/{policy_uuid}"
         elif self.region == "PC":
             url = f"https://console.{self.pc_domain}/v1/policies/{policy_uuid}"
-        logging.debug("requesting %s", url)
+        logging.debug(f"requesting {url}")
         try:
             if self.region == "PC":
                 r = requests.get(url, auth=self.auth, verify=self.pc_ca_path)
@@ -705,12 +706,12 @@ class Data:
                 r = requests.get(url, auth=self.auth)
             j = json.loads(r.content)
             logging.debug(f"SELF.POLICY_SERIAL_RESPONSE: {j}")
-            
+
             self.policy_serial = j['data'].get('serial_number')
             logging.debug(f"SELF.POLICY_SERIAL: {self.policy_serial}")
             if self.policy_serial:
-                logging.debug("self.policy_serial: %s", self.policy_serial)
-                logging.debug("policy_xml_serial: %s", policy_xml_serial)
+                logging.debug(f"self.policy_serial: {self.policy_serial}")
+                logging.debug(f"policy_xml_serial: {policy_xml_serial}")
                 if int(self.policy_serial) == int(policy_xml_serial):   # Policy is up to date
                     self.policy_color = 'Green'
                 else:   # Policy is not up to date
@@ -729,13 +730,13 @@ class Data:
             url = "http://update.amp.cisco.com/av64bit/versions.id"
         else:
             url = "http://udpate.amp.cisco.com/av32bit/versions.id"
-        logging.debug("requesting %s", url)
+        logging.debug(f"requesting {url}")
         try:
             r = requests.get(url)
             j = r.text
             self.tetra_latest = j.split('value="')[1].split('"')[0]
-            logging.debug("tetra_latest: %s", self.tetra_latest)
-            logging.debug("data.tetra_version: %s", self.tetra_version)
+            logging.debug(f"tetra_latest: {self.tetra_latest}")
+            logging.debug(f"data.tetra_version: {self.tetra_version}")
             if (int(self.tetra_latest) - int(self.tetra_version)) <= 5: # Within 5 versions \
                 # is still relatively up to date since 4-5 versions come out a day
                 self.tetra_color = "green"
@@ -786,18 +787,18 @@ class Data:
         elif self.region == "PC":
             url = f"https://console.{self.pc_domain}/v1/version"
         try:
-            logging.debug("Requesting {}".format(url))
+            logging.debug(f"Requesting {url}")
             if self.region == "PC":
                 r = requests.get(url, auth=(self.client_id, self.api_key), verify=self.pc_ca_path)
             else:
                 r = requests.get(url, auth=(self.client_id, self.api_key))
             if r.status_code == 200:
-                logging.debug("200 response from %s", url)
+                logging.debug(f"200 response from {url}")
                 self.api_cred_valid = True
-                logging.debug('Valid API creds for Client ID: %s', self.client_id)
+                logging.debug(f"Valid API creds for Client ID: {self.client_id}")
                 # Set display for API Creds to Valid
             else:
-                logging.debug("%s response from %s", r.status_code, url)
+                logging.debug(f"{r.status_code} response from {url}")
                 self.api_cred_valid = False
         except requests.exceptions.ConnectionError as e:
             logging.debug(f"requests.exceptions.ConnectionError: {e}")
@@ -816,26 +817,26 @@ class Data:
         '''
         logging.debug("Running connectivity check.")
         for url in self.connectivity_urls:
-            logging.debug("Trying cert for %s", url)
+            logging.debug(f"Trying cert for {url}")
             try:
                 cert = ssl.get_server_certificate((url, 443))
-                logging.debug("Cert is %s", cert)
+                logging.debug(f"Cert is {cert}")
                 self.conn_test_results[url] = 'Green'
-                logging.debug("Found cert for %s", url)
+                logging.debug(f"Found cert for {url}")
             except TimeoutError:
-                logging.warning("Connection timed out for %s", url)
+                logging.warning(f"Connection timed out for {url}")
                 self.conn_test_results[url] = 'Red'
             except socket.gaierror:
-                logging.warning("Cert error for %s", url)
+                logging.warning(f"Cert error for {url}")
                 self.conn_test_results[url] = 'Red'
             except ConnectionRefusedError:
-                logging.warning("ConnectionRefusedError for %s", url)
+                logging.warning(f"ConnectionRefusedError for {url}")
                 self.conn_test_results[url] = 'Red'
             except WindowsError:
-                logging.warning("WinError for %s", url)
+                logging.warning(f"WinError for {url}")
                 self.conn_test_results[url] = 'Red'
             window.find_element(url).Update(background_color=self.conn_test_results[url])
-            logging.debug("conn for %s complete: %s", url, self.conn_test_results[url])
+            logging.debug(f"conn for {url} complete: {self.conn_test_results[url]}")
             window.Refresh()
 
     def check_for_amp(self):
@@ -856,7 +857,7 @@ class Data:
                 logging.warning("Error: psutil.NoSuchProcess in check_for_amp")
         if amp_installed == False or amp_running == False:
             logging.warning("amp_installed or amp_running == False")
-            sg.popup("Ensure AMP is installed and runnning and try again.", title="AMP not found")
+            sg.popup("Ensure Secure Endpoint is installed and runnning and try again.", title="Secure Endpoint not found")
             sys.exit()
 
     def debug_check(self):
@@ -870,14 +871,14 @@ class Data:
             logging.info('Enabling debug logging.')
             try:
                 logging.debug(f"Attempting to run {self.path_prelude}/sfc.exe")
-                subprocess.Popen(["{}/sfc.exe".format(self.path_prelude), '-l', 'start'])
+                subprocess.Popen([f"{self.path_prelude}/sfc.exe", '-l', 'start'])
             except OSError:
                 sg.popup("Changing log level requires running AMP Health Checker as Admin. Please try again as Admin.", title="Admin required")
                 sys.exit()
             logging.info('Debug logging enabled.')
             self.enabled_debug = True
         else:
-            logging.info("Log level was set to %s", self.policy_dict['log_level'])
+            logging.info(f"Log level was set to {self.policy_dict['log_level']}")
             self.enabled_debug = False
 
     def disable_debug(self):
@@ -885,7 +886,7 @@ class Data:
         Disable AMP debug logging if set temporarily.
         '''
         logging.info('Disabling debug logging.')
-        subprocess.Popen(["{}/sfc.exe".format(self.path_prelude), '-l', 'stop'])
+        subprocess.Popen([f"{self.path_prelude}/sfc.exe", '-l', 'stop'])
         logging.info('Debug logging disabled.')
         self.enabled_debug = False
 
@@ -908,7 +909,7 @@ class Data:
                 uptime -= value * count
                 if value == 1:
                     name = name.rstrip('s')
-                result.append("{} {}".format(value, name))
+                result.append(f"{value} {name}")
         self.converted_uptime = ', '.join(result[:granularity])
 
     def get_top_ips(self, ip_list, n=10):
@@ -918,7 +919,7 @@ class Data:
         c = Counter(ip_list)
         to_return = []
         for i in c.most_common(n):
-            to_return.append("{:5}: {:<}".format(i[1], i[0]))
+            to_return.append(f"{i[1]:5}: {i[0]:<}")
         return "\n".join(to_return)
 
     def generate_diagnostic(self):
@@ -930,11 +931,11 @@ class Data:
         try:
             shutil.copy(src, dst)
         except FileNotFoundError:
-            logging.error("FileNotFoundError: Source: %s | Dest: %s", src, dst)
+            logging.error(f"FileNotFoundError: Source: {src} | Dest: {dst}")
             self.diag_failed = True
 
         try:
-            subprocess.Popen("{}/ipsupporttool.exe".format(self.path_prelude))
+            subprocess.Popen(f"{self.path_prelude}/ipsupporttool.exe")
             logging.info("Diagnostic generated.")
         except OSError as e:
             logging.error(e)
