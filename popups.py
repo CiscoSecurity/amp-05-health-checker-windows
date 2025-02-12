@@ -9,6 +9,7 @@ import webbrowser
 from certificates import certificates
 from data import Data
 from bad_exclusions_list import bad_exclusions_list
+from subprocess import CalledProcessError
 
 def analysis(data):
     '''
@@ -687,8 +688,12 @@ def check_certs():
     Check for required certificate installation
     '''
     # Get the list of installed certificates
-    output = subprocess.check_output("powershell.exe Get-ChildItem -Path Cert:LocalMachine\\Root", shell=True, universal_newlines=True)
-
+    try:
+        output = subprocess.check_output("powershell.exe Get-ChildItem -Path Cert:LocalMachine\\Root", shell=True, universal_newlines=True)
+    except CalledProcessError:
+        sg.popup("Checking Certs requires running SE Health Check as Admin. Please try again as Admin.", title="Admin required")
+        return
+        
     # Check each certificate in the list
     missing_certificates = []
     for name, thumbprint in certificates:

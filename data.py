@@ -1,6 +1,7 @@
 '''
 The data module does the majority of the grunt work for the program.
 '''
+import ast
 import json
 import logging
 import os
@@ -123,6 +124,9 @@ class Data:
             logging.info(f"Organization name not found in .env file. Check .env file for proper ORG_NAME.")
             sg.popup(f"Organization name not found in .env file. Check .env file for proper ORG_NAME.")
             sys.exit()
+        self.proxies = os.getenv('PROXIES')
+        if self.proxies:
+            self.proxies = ast.literal_eval(self.proxies)
 
     def get_list_of_folders(self, file_path):
         r"""
@@ -583,7 +587,10 @@ class Data:
                 # Pull the policy uuid
                 url = f"https://console.{self.pc_domain}/v1/computers/{self.local_uuid}"
                 try:
-                    r = requests.get(url, auth=self.auth, verify=self.pc_ca_path)
+                    if self.proxies:
+                        r = requests.get(url, auth=self.auth, verify=self.pc_ca_path, proxies=self.proxies)
+                    else:
+                        r = requests.get(url, auth=self.auth, verify=self.pc_ca_path)
                     j = json.loads(r.content)
                     logging.debug(j)
                     self.policy_uuid = j['data']['policy']['guid']
@@ -597,7 +604,10 @@ class Data:
                 logging.debug(f"Policy serial is {self.policy_uuid}")
                 policy_xml_url = f"https://console.{self.pc_domain}/v1/policies/{self.policy_uuid}.xml"
                 try:
-                    policy_xml_response = requests.get(policy_xml_url, auth=self.auth, verify=self.pc_ca_path)
+                    if self.proxies:
+                        policy_xml_response = requests.get(policy_xml_url, auth=self.auth, verify=self.pc_ca_path, proxies=self.proxies)
+                    else:
+                        policy_xml_response = requests.get(policy_xml_url, auth=self.auth, verify=self.pc_ca_path)
                     logging.debug(policy_xml_response.content)
                     self.policy_xml = policy_xml_response.content
                     tree = ET.ElementTree(ET.fromstring(self.policy_xml))
@@ -674,9 +684,15 @@ class Data:
             url = f"https://console.{self.pc_domain}/v1/computers/{local_uuid}/isolation"
         try:
             if self.region == "PC":
-                r = requests.get(url, auth=self.auth, verify=self.pc_ca_path)
+                if self.proxies:
+                    r = requests.get(url, auth=self.auth, verify=self.pc_ca_path, proxies=self.proxies)
+                else:
+                    r = requests.get(url, auth=self.auth, verify=self.pc_ca_path)
             else:
-                r = requests.get(url, auth=self.auth)
+                if self.proxies:
+                    r = requests.get(url, auth=self.auth, proxies=self.proxies)
+                else:
+                    r = requests.get(url, auth=self.auth)
             j = json.loads(r.content)
             self.unlock_code = f"Unlock Code: {j['data']['unlock_code']}"
         except requests.exceptions.ConnectionError:
@@ -701,9 +717,15 @@ class Data:
         logging.debug(f"requesting {url}")
         try:
             if self.region == "PC":
-                r = requests.get(url, auth=self.auth, verify=self.pc_ca_path)
+                if self.proxies:
+                    r = requests.get(url, auth=self.auth, verify=self.pc_ca_path, proxies=self.proxies)
+                else:
+                    r = requests.get(url, auth=self.auth, verify=self.pc_ca_path)
             else:
-                r = requests.get(url, auth=self.auth)
+                if self.proxies:
+                    r = requests.get(url, auth=self.auth, proxies=self.proxies)
+                else:
+                    r = requests.get(url, auth=self.auth)
             j = json.loads(r.content)
             logging.debug(f"SELF.POLICY_SERIAL_RESPONSE: {j}")
 
@@ -732,7 +754,10 @@ class Data:
             url = "http://udpate.amp.cisco.com/av32bit/versions.id"
         logging.debug(f"requesting {url}")
         try:
-            r = requests.get(url)
+            if self.proxies:
+                r = requests.get(url, proxies=self.proxies)
+            else:
+                r = requests.get(url)
             j = r.text
             self.tetra_latest = j.split('value="')[1].split('"')[0]
             logging.debug(f"tetra_latest: {self.tetra_latest}")
@@ -789,9 +814,15 @@ class Data:
         try:
             logging.debug(f"Requesting {url}")
             if self.region == "PC":
-                r = requests.get(url, auth=(self.client_id, self.api_key), verify=self.pc_ca_path)
+                if self.proxies:
+                    r = requests.get(url, auth=(self.client_id, self.api_key), verify=self.pc_ca_path, proxies=self.proxies)
+                else:
+                    r = requests.get(url, auth=(self.client_id, self.api_key), verify=self.pc_ca_path)
             else:
-                r = requests.get(url, auth=(self.client_id, self.api_key))
+                if self.proxies:
+                    r = requests.get(url, auth=(self.client_id, self.api_key), proxies=self.proxies)
+                else:
+                    r = requests.get(url, auth=(self.client_id, self.api_key))
             if r.status_code == 200:
                 logging.debug(f"200 response from {url}")
                 self.api_cred_valid = True
@@ -819,8 +850,22 @@ class Data:
         for url in self.connectivity_urls:
             logging.debug(f"Trying cert for {url}")
             try:
-                cert = ssl.get_server_certificate((url, 443))
-                logging.debug(f"Cert is {cert}")
+                if self.proxies:
+                    context = ssl._create_unverified_context()
+                    proxy_host, proxy_port = self.proxies['https'].split('//')[1].split(':')
+                    with socket.create_connection((proxy_host, int(proxy_port))) as sock:
+                        sock.sendall(f"CONNECT {url}:443 HTTP/1.1\r\nHost: {url}\r\n\r\n".encode())
+                        response = sock.recv(4096)
+                        if b"200 Connection established" not in response:
+                            raise ConnectionRefusedError("Proxy connection failed")
+                        with context.wrap_socket(sock, server_hostname=url) as ssock:
+                            cert = ssock.getpeercert()
+                    logging.debug(f"Cert is {cert}")
+                else:
+                    context = ssl._create_unverified_context()
+                    with socket.create_connection((url, 443)) as sock:
+                        with context.wrap_socket(sock, server_hostname=url) as ssock:
+                            logging.debug(f"Successfully connected to {url}")
                 self.conn_test_results[url] = 'Green'
                 logging.debug(f"Found cert for {url}")
             except TimeoutError:
@@ -949,7 +994,10 @@ class Data:
         # Pull the policy uuid
         url = f"{self.base_secure_endpoint_url}/v1/computers/{self.local_uuid}"
         try:
-            r = requests.get(url, auth=self.auth)
+            if self.proxies:
+                r = requests.get(url, auth=self.auth, proxies=self.proxies)
+            else:
+                r = requests.get(url, auth=self.auth)
             j = json.loads(r.content)
             logging.debug(j)
             self.policy_uuid = j['data']['policy']['guid']
@@ -965,7 +1013,10 @@ class Data:
 
         org_id_url = f"{self.base_secure_endpoint_url}/v3/organizations?size=100"
         headers = {'Authorization': f'Bearer {se_access_token}'}
-        org_response = requests.get(org_id_url, headers=headers)
+        if self.proxies:
+            org_response = requests.get(org_id_url, headers=headers, proxies=self.proxies)
+        else:
+            org_response = requests.get(org_id_url, headers=headers)
         for org in org_response.json()['data']:
             if org['name'] == self.org_name:
                 self.org_id = org['organizationIdentifier']
@@ -974,7 +1025,10 @@ class Data:
             sg.popup("Organization name in .env file not found in authorized SecureX Orgs. Check .env file information for accuracy.")
             sys.exit()
         policy_xml_url = f"{self.base_secure_endpoint_url}/v3/organizations/{self.org_id}/policies/{self.policy_uuid}/xml"
-        policy_response = requests.get(policy_xml_url, headers=headers)
+        if self.proxies:
+            policy_response = requests.get(policy_xml_url, headers=headers, proxies=self.proxies)
+        else:
+            policy_response = requests.get(policy_xml_url, headers=headers)
         if policy_response.status_code == 404:
             logging.debug("Policy call retured 404, check your SecureX Org ID to ensure it matches the org containing this policy.")
         self.policy_xml = policy_response.text

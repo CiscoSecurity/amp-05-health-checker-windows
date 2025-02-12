@@ -195,6 +195,22 @@ Refresh will refresh the data on the main page. This may be necessary if the Iso
 
 Cancel will exit the program.
 
+## UPDATE February 2025
+
+Added proxy support. If you have a proxy in place, you can add the following line to your .env file:
+
+PROXIES = {"http": "http://192.168.1.1:3128", "https": "http://192.168.1.1:3128"}
+
+If your proxy requires authentication, you can add the following line to your .env file:
+
+PROXIES = {"http": "http://user:pass@192.168.1.1:3128", "https": "http://user:pass@192.168.1.1:3128"}
+
+In this format:
+user is your username.
+pass is your password.
+192.168.1.1 is the proxy server's IP address.
+3128 is the proxy server's port.
+
 ## UPDATE October 2024
 
 Fixed a versioning issue.
