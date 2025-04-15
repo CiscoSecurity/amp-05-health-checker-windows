@@ -94,9 +94,9 @@ class Data:
             self.policy_serial_compare(self.policy_dict['policy_uuid'], \
                 self.policy_dict['policy_sn'])
         try:
-            self.tetra_version = self.dig_thru_xml("agent", "engine", "tetra", \
-                "defversions", root=self.get_root("C:/Program Files/Cisco/AMP/local.xml"), \
-                    tag="").split(':')[1]
+            self.tetra_version = json.loads(self.dig_thru_xml("agent", "engine", "stats", \
+                "definitions", root=self.get_root("C:/Program Files/Cisco/AMP/local.xml"), \
+                    tag=""))['engineDefinitions'][0]['defVersion'].split(":")[1]
             self.tetra_version_display = str(self.tetra_version)
         except IndexError:
             logging.error("tetra_version or tetra_version_display IndexError")
